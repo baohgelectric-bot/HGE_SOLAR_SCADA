@@ -1,0 +1,169 @@
+'use client';
+
+import { useState, useMemo } from 'react';
+import { Download, Building2, Calendar, FileSpreadsheet, FileBarChart } from 'lucide-react';
+import { Scope, SCOPE_LABELS } from '@/config/constants';
+import { Header } from '@/components/layout/Header';
+
+const REPORT_TYPE_OPTIONS = [
+    { value: 'ALL', label: 'Tất cả' },
+    { value: 'DAILY', label: 'Theo ngày' },
+    { value: 'HOURLY', label: 'Theo giờ' },
+    { value: 'WEEKLY', label: 'Theo tuần' },
+    { value: 'MONTHLY', label: 'Theo tháng' },
+    { value: 'QUARTERLY', label: 'Theo quý' },
+    { value: 'YEARLY', label: 'Theo năm' },
+];
+
+export default function ExportPage() {
+    const [scope, setScope] = useState<string>('ALL');
+    const [reportType, setReportType] = useState<string>('DAILY');
+    const [fromDate, setFromDate] = useState<string>(() => {
+        const d = new Date();
+        d.setDate(1);
+        return d.toISOString().split('T')[0];
+    });
+    const [toDate, setToDate] = useState<string>(() => {
+        return new Date().toISOString().split('T')[0];
+    });
+
+    // Build the download URL dynamically based on selected filters
+    const downloadUrl = useMemo(() => {
+        if (!fromDate || !toDate || fromDate > toDate) return null;
+
+        const fromIso = new Date(`${fromDate}T00:00:00`).toISOString();
+        const toDateObj = new Date(`${toDate}T00:00:00`);
+        toDateObj.setDate(toDateObj.getDate() + 1);
+        const toIso = toDateObj.toISOString();
+
+        return `/api/export?scope=${encodeURIComponent(scope)}&from=${encodeURIComponent(fromIso)}&to=${encodeURIComponent(toIso)}&report_type=${encodeURIComponent(reportType)}`;
+    }, [scope, fromDate, toDate, reportType]);
+
+    const hasError = !fromDate || !toDate || fromDate > toDate;
+
+    const scopes = [
+        { value: 'ALL', label: 'Tất cả các Trạm' },
+        { value: Scope.TOTAL, label: SCOPE_LABELS[Scope.TOTAL] },
+        { value: Scope.DM1, label: SCOPE_LABELS[Scope.DM1] },
+        { value: Scope.DM2, label: SCOPE_LABELS[Scope.DM2] },
+        { value: Scope.DM3, label: SCOPE_LABELS[Scope.DM3] },
+        { value: Scope.TOTAL_A, label: SCOPE_LABELS[Scope.TOTAL_A] },
+        { value: Scope.TOTAL_B, label: SCOPE_LABELS[Scope.TOTAL_B] },
+    ];
+
+    return (
+        <div className="flex flex-col min-h-screen relative">
+            <Header connection={{ status: 0 } as any} />
+            <main className="flex-1 p-4 lg:p-6 overflow-auto">
+                <div className="max-w-[700px] mx-auto w-full space-y-8 pt-8">
+                    <div className="text-center mb-8">
+                        <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4">
+                            <FileSpreadsheet className="h-8 w-8 text-primary" />
+                        </div>
+                        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                            Xuất dữ liệu hệ thống
+                        </h1>
+                        <p className="text-muted-foreground mt-2 max-w-lg mx-auto">
+                            Tùy chọn trạm, loại báo cáo và khoảng thời gian để tải về báo cáo tổng hợp dạng tệp CSV, phục vụ tính toán và phân tích trên Microsoft Excel.
+                        </p>
+                    </div>
+
+                    <div className="bg-card border border-border/50 rounded-2xl p-6 shadow-sm">
+                        <div className="space-y-6">
+                            {/* Scope selector */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold flex items-center gap-2">
+                                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                                    Chọn Trạm điện
+                                </label>
+                                <select
+                                    className="w-full h-11 px-3 bg-background border border-border rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow text-foreground"
+                                    value={scope}
+                                    onChange={(e) => setScope(e.target.value)}
+                                >
+                                    {scopes.map(s => (
+                                        <option key={s.value} value={s.value}>{s.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Report Type selector */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold flex items-center gap-2">
+                                    <FileBarChart className="h-4 w-4 text-muted-foreground" />
+                                    Loại báo cáo
+                                </label>
+                                <select
+                                    className="w-full h-11 px-3 bg-background border border-border rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow text-foreground"
+                                    value={reportType}
+                                    onChange={(e) => setReportType(e.target.value)}
+                                >
+                                    {REPORT_TYPE_OPTIONS.map(rt => (
+                                        <option key={rt.value} value={rt.value}>{rt.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Date range pickers */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold flex items-center gap-2">
+                                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                                        Từ ngày
+                                    </label>
+                                    <input
+                                        type="date"
+                                        className="w-full h-11 px-3 bg-background border border-border rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow text-foreground"
+                                        value={fromDate}
+                                        onChange={(e) => setFromDate(e.target.value)}
+                                        max={toDate}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold flex items-center gap-2">
+                                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                                        Đến ngày
+                                    </label>
+                                    <input
+                                        type="date"
+                                        className="w-full h-11 px-3 bg-background border border-border rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow text-foreground"
+                                        value={toDate}
+                                        onChange={(e) => setToDate(e.target.value)}
+                                        min={fromDate}
+                                        max={new Date().toISOString().split('T')[0]}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Validation Error */}
+                            {hasError && fromDate && toDate && fromDate > toDate && (
+                                <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium">
+                                    Ngày kết thúc phải sau ngày bắt đầu
+                                </div>
+                            )}
+
+                            {/* Download Link - This is a REAL <a> tag, NOT a JS button */}
+                            {/* The browser handles the download natively via Content-Disposition header */}
+                            <div className="pt-2">
+                                {downloadUrl ? (
+                                    <a
+                                        href={downloadUrl}
+                                        className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold flex items-center justify-center gap-2 rounded-md transition-colors no-underline"
+                                    >
+                                        <Download className="h-5 w-5" />
+                                        Tải xuống File CSV
+                                    </a>
+                                ) : (
+                                    <div className="w-full h-11 bg-primary/50 text-primary-foreground font-semibold flex items-center justify-center gap-2 rounded-md cursor-not-allowed opacity-50">
+                                        <Download className="h-5 w-5" />
+                                        Tải xuống File CSV
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
+}
