@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import {
     ComposedChart,
     Bar,
@@ -16,6 +17,17 @@ import type { ChartDataPoint } from '@/types/scada.types';
 import { EmptyState } from '../ui/EmptyState';
 import { ErrorState } from '../ui/ErrorState';
 import { LoadingSkeleton } from '../ui/LoadingSkeleton';
+
+function useIsMobile(breakpoint = 640) {
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth < breakpoint);
+        check();
+        window.addEventListener('resize', check);
+        return () => window.removeEventListener('resize', check);
+    }, [breakpoint]);
+    return isMobile;
+}
 
 interface BarChartWidgetProps {
     data: ChartDataPoint[] | undefined;
@@ -72,11 +84,41 @@ export function BarChartWidget({
         );
     }
 
+    const isMobile = useIsMobile();
+
+    const yAxisWidth = isMobile ? 30 : 60;
+    const tickFontSize = isMobile ? 9 : 12;
+    const tickGap = isMobile ? 2 : 8;
+    const chartMargin = isMobile
+        ? { top: 5, right: 2, left: 0, bottom: 5 }
+        : { top: 5, right: 10, left: 10, bottom: 5 };
+
+    const formatLeftTick = (v: number) => {
+        if (isMobile) {
+            if (v >= 1000) return Math.round(v / 1000) + 'k';
+            return Math.round(v).toString();
+        }
+        return v.toLocaleString('vi-VN', { maximumFractionDigits: 0 });
+    };
+
+    const formatRightTick = (v: number) => {
+        if (isMobile) {
+            if (v >= 1000000000) return (v / 1000000000).toFixed(0) + 'tỷ';
+            if (v >= 1000000) return (v / 1000000).toFixed(0) + 'tr';
+            if (v >= 1000) return Math.round(v / 1000) + 'N';
+            return Math.round(v).toString();
+        }
+        if (v >= 1000000000) return (v / 1000000000).toFixed(1) + ' tỷ';
+        if (v >= 1000000) return (v / 1000000).toFixed(1) + ' tr';
+        if (v >= 1000) return (v / 1000).toFixed(1) + ' N';
+        return v.toLocaleString('vi-VN');
+    };
+
     return (
         <div className={className}>
             <h3 className="text-sm font-semibold mb-3">{title}</h3>
             <ResponsiveContainer width="100%" height={height}>
-                <ComposedChart data={data} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                <ComposedChart data={data} margin={chartMargin}>
                     <CartesianGrid
                         strokeDasharray="3 3"
                         className="stroke-border"
@@ -84,28 +126,23 @@ export function BarChartWidget({
                     />
                     <XAxis
                         dataKey="label"
-                        tick={{ fontSize: 12, fill: 'var(--foreground)', fontWeight: 600 }}
-                        tickMargin={8}
+                        tick={{ fontSize: tickFontSize, fill: 'var(--foreground)', fontWeight: 600 }}
+                        tickMargin={tickGap}
                     />
                     <YAxis
                         yAxisId="left"
-                        tick={{ fontSize: 12, fill: 'var(--foreground)', fontWeight: 600 }}
-                        tickFormatter={(v) => v.toLocaleString('vi-VN', { maximumFractionDigits: 0 })}
-                        tickMargin={8}
-                        width={60}
+                        tick={{ fontSize: tickFontSize, fill: 'var(--foreground)', fontWeight: 600 }}
+                        tickFormatter={formatLeftTick}
+                        tickMargin={tickGap}
+                        width={yAxisWidth}
                     />
                     <YAxis
                         yAxisId="right"
                         orientation="right"
-                        tick={{ fontSize: 12, fill: 'var(--foreground)', fontWeight: 600 }}
-                        tickFormatter={(v) => {
-                            if (v >= 1000000000) return (v / 1000000000).toFixed(1) + ' tỷ';
-                            if (v >= 1000000) return (v / 1000000).toFixed(1) + ' tr';
-                            if (v >= 1000) return (v / 1000).toFixed(1) + ' N';
-                            return v.toLocaleString('vi-VN');
-                        }}
-                        tickMargin={8}
-                        width={60}
+                        tick={{ fontSize: tickFontSize, fill: 'var(--foreground)', fontWeight: 600 }}
+                        tickFormatter={formatRightTick}
+                        tickMargin={tickGap}
+                        width={yAxisWidth}
                     />
                     <Tooltip
                         cursor={{ fill: 'hsl(var(--accent))', opacity: 0.2 }}

@@ -50,19 +50,19 @@ export function KpiCard({
     return (
         <div
             className={cn(
-                'rounded-xl border border-border bg-card p-5 shadow-sm hover:shadow-md transition-shadow',
+                'rounded-xl border border-border bg-card p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow overflow-hidden',
                 className,
             )}
         >
-            <div className="flex items-center justify-between mb-3">
-                <span className="text-lg font-bold text-muted-foreground">{label}</span>
-                <div className="p-2 rounded-lg bg-primary/10">
-                    <Icon className="h-4 w-4 text-primary" />
+            <div className="flex items-center justify-between mb-3 min-w-0">
+                <span className="text-sm sm:text-lg font-bold text-muted-foreground truncate mr-2">{label}</span>
+                <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                    <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
                 </div>
             </div>
-            <div className="flex items-baseline gap-2 mt-2">
-                <span className="text-2xl font-bold tracking-tight">{value}</span>
-                <span className="text-xl font-semibold text-primary">{unit}</span>
+            <div className="flex items-baseline gap-1 sm:gap-2 mt-2 flex-wrap min-w-0">
+                <span className="text-lg sm:text-2xl font-bold tracking-tight break-all">{value}</span>
+                <span className="text-base sm:text-xl font-semibold text-primary">{unit}</span>
             </div>
             {trend && (
                 <div className={cn('flex items-center gap-1 mt-2', trendColor)}>
