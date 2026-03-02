@@ -170,7 +170,7 @@ export function BarChartWidget({
                             if (safeName.includes('Sản lượng')) {
                                 return [`${Number(value ?? 0).toLocaleString('vi-VN', { maximumFractionDigits: 2 })} kWh`, safeName];
                             }
-                            return [`${Number(value ?? 0).toLocaleString('vi-VN', { maximumFractionDigits: 0 })} VNĐ`, safeName];
+                            return [`${Number(value ?? 0).toLocaleString('vi-VN', { maximumFractionDigits: 0 })} KVNĐ`, safeName];
                         }}
                     />
                     <Legend wrapperStyle={{ fontSize: '12px' }} />
@@ -180,7 +180,7 @@ export function BarChartWidget({
                         fill={barColor}
                         radius={[4, 4, 0, 0]}
                         name="Sản lượng (kWh)"
-                        maxBarSize={45}
+                        maxBarSize={30}
                         activeBar={{ stroke: 'hsl(var(--primary))', strokeWidth: 1, fillOpacity: 0.8 }}
                     />
                     <Line
@@ -191,7 +191,7 @@ export function BarChartWidget({
                         strokeWidth={3}
                         dot={{ r: 4, fill: '#2dd4bf', strokeWidth: 2 }}
                         activeDot={{ r: 6 }}
-                        name="Doanh thu (VNĐ)"
+                        name="Doanh thu (KVNĐ)"
                     />
                 </ComposedChart>
             </ResponsiveContainer>
