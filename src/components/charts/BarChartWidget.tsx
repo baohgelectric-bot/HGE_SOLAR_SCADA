@@ -54,6 +54,8 @@ export function BarChartWidget({
     className,
     height = 320,
 }: BarChartWidgetProps) {
+    const isMobile = useIsMobile();
+
     if (isLoading) {
         return (
             <div className={className}>
@@ -84,7 +86,6 @@ export function BarChartWidget({
         );
     }
 
-    const isMobile = useIsMobile();
 
     const yAxisWidth = isMobile ? 30 : 60;
     const tickFontSize = isMobile ? 9 : 12;
