@@ -34,7 +34,7 @@ interface LogEntry {
 
 /* ─── Constants ─── */
 const SYS_VARS = ['sys_temp', 'sys_cpu', 'sys_ram', 'sys_disk_free', 'sys_uptime_seconds'];
-const POLL_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+const POLL_INTERVAL_MS = 1 * 60 * 1000; // 1 minutes
 const STALE_THRESHOLD = 3; // stale cycles before offline
 const MAX_LOG_ENTRIES = 20;
 
