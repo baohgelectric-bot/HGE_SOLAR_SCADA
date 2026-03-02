@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { format } from 'date-fns';
+import { format, startOfHour } from 'date-fns';
 import {
     STALE_THRESHOLD_MS,
     FilterType,
@@ -116,7 +116,7 @@ export function formatChartLabel(ts: string, filterType: FilterType): string {
     const d = new Date(ts);
     switch (filterType) {
         case FilterType.DAY:
-            return format(d, 'HH:mm');
+            return format(startOfHour(d), 'HH:mm');
         case FilterType.WEEK:
         case FilterType.MONTH:
             return format(d, 'dd/MM');
