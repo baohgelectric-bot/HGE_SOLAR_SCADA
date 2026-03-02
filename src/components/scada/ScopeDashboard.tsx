@@ -164,30 +164,30 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
                                     className="w-full"
                                 />
                                 {/* Row 2, Col 2 */}
-                                <div className="rounded-xl border border-border bg-card p-4 w-full">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <span className="text-lg font-bold text-muted-foreground">CO₂ Avoidance</span>
-                                        <div className="p-2 rounded-lg bg-emerald-500/10">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-emerald-500"><path d="M17 8c.7-1 1-2.2 1-3.5A5.5 5.5 0 0 0 12.5 0 5.5 5.5 0 0 0 7 4.5c0 1.3.3 2.5 1 3.5" /><path d="M12 22V10" /><path d="m4.5 13.5 3-3L12 15l4.5-4.5 3 3" /></svg>
+                                <div className="rounded-xl border border-border bg-card p-4 w-full overflow-hidden">
+                                    <div className="flex items-center justify-between mb-3 min-w-0">
+                                        <span className="text-sm sm:text-lg font-bold text-muted-foreground truncate mr-2">CO₂ Avoidance</span>
+                                        <div className="p-1.5 sm:p-2 rounded-lg bg-emerald-500/10 flex-shrink-0">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-500"><path d="M17 8c.7-1 1-2.2 1-3.5A5.5 5.5 0 0 0 12.5 0 5.5 5.5 0 0 0 7 4.5c0 1.3.3 2.5 1 3.5" /><path d="M12 22V10" /><path d="m4.5 13.5 3-3L12 15l4.5-4.5 3 3" /></svg>
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
                                             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Today</span>
-                                            <div className="flex items-baseline gap-1 mt-1">
-                                                <span className="text-2xl font-bold tracking-tight">
+                                            <div className="flex items-baseline gap-1 mt-1 flex-wrap min-w-0">
+                                                <span className="text-lg sm:text-2xl font-bold tracking-tight break-all">
                                                     {dailyYield != null ? (dailyYield * 0.7221).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) : '—'}
                                                 </span>
-                                                <span className="text-xl font-semibold text-emerald-500">kg</span>
+                                                <span className="text-base sm:text-xl font-semibold text-emerald-500">kg</span>
                                             </div>
                                         </div>
                                         <div>
                                             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total</span>
-                                            <div className="flex items-baseline gap-1 mt-1">
-                                                <span className="text-2xl font-bold tracking-tight">
+                                            <div className="flex items-baseline gap-1 mt-1 flex-wrap min-w-0">
+                                                <span className="text-lg sm:text-2xl font-bold tracking-tight break-all">
                                                     {lifetimeYield != null ? (lifetimeYield * 0.7221 / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) : '—'}
                                                 </span>
-                                                <span className="text-xl font-semibold text-emerald-500">ton</span>
+                                                <span className="text-base sm:text-xl font-semibold text-emerald-500">ton</span>
                                             </div>
                                         </div>
                                     </div>
