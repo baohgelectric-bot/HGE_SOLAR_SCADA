@@ -1,42 +1,28 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
     Cpu,
     Thermometer,
     HardDrive,
     MemoryStick,
-    Activity,
     CheckCircle2,
     XCircle,
     RotateCcw,
     Clock,
-    ScrollText,
     Server,
-    Wifi,
-    WifiOff,
 } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { Header } from '@/components/layout/Header';
 import { useRealtimeData } from '@/hooks/useRealtimeData';
-import { ConnectionStatus } from '@/config/constants';
-import type { RealtimeConnectionInfo } from '@/types/scada.types';
 
 /* ─── Types ─── */
 type BackendStatus = 'online' | 'offline' | 'restarted';
-
-interface LogEntry {
-    id: number;
-    timestamp: Date;
-    message: string;
-    type: 'info' | 'warning' | 'error';
-}
 
 /* ─── Constants ─── */
 const SYS_VARS = ['sys_temp', 'sys_cpu', 'sys_ram', 'sys_disk_free', 'sys_uptime_seconds'];
 const POLL_INTERVAL_MS = 1 * 60 * 1000; // 1 minutes
 const STALE_THRESHOLD = 3; // stale cycles before offline
-const MAX_LOG_ENTRIES = 20;
 
 /* ─── Helpers ─── */
 function formatUptime(seconds: number | null): string {
@@ -249,41 +235,6 @@ function StatusBadge({ status }: { status: BackendStatus }) {
     );
 }
 
-/* ─── LogEntry ─── */
-function LogEntryRow({ entry }: { entry: LogEntry }) {
-    const timeStr = entry.timestamp.toLocaleString('vi-VN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-    });
-
-    const typeConfig = {
-        info: { color: 'text-sky-400', bg: 'bg-sky-500/10', icon: Wifi, label: 'INFO' },
-        warning: { color: 'text-amber-400', bg: 'bg-amber-500/10', icon: RotateCcw, label: 'WARN' },
-        error: { color: 'text-red-400', bg: 'bg-red-500/10', icon: WifiOff, label: 'ERROR' },
-    }[entry.type];
-
-    const Icon = typeConfig.icon;
-
-    return (
-        <div className="flex items-start gap-3 px-4 py-2.5 rounded-lg hover:bg-muted/50 transition-colors group">
-            <div className={`mt-0.5 p-1 rounded ${typeConfig.bg}`}>
-                <Icon className={`h-3.5 w-3.5 ${typeConfig.color}`} />
-            </div>
-            <div className="flex-1 min-w-0">
-                <p className="text-sm leading-snug">{entry.message}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{timeStr}</p>
-            </div>
-            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${typeConfig.bg} ${typeConfig.color} opacity-60 group-hover:opacity-100 transition-opacity`}>
-                {typeConfig.label}
-            </span>
-        </div>
-    );
-}
-
 /* ─── Main Component ─── */
 export default function MonitorBackendPage() {
     const { data: realtimeData, connection } = useRealtimeData({
@@ -291,26 +242,9 @@ export default function MonitorBackendPage() {
     });
 
     const [backendStatus, setBackendStatus] = useState<BackendStatus>('online');
-    const [logs, setLogs] = useState<LogEntry[]>([]);
-    const logIdRef = useRef(0);
     const prevUptimeRef = useRef<number | null>(null);
     const staleCountRef = useRef(0);
     const initialLoadRef = useRef(true);
-
-    // Helper to add log entry
-    const addLog = useCallback((message: string, type: LogEntry['type']) => {
-        logIdRef.current += 1;
-        setLogs(prev => {
-            const newEntry: LogEntry = {
-                id: logIdRef.current,
-                timestamp: new Date(),
-                message,
-                type,
-            };
-            const updated = [newEntry, ...prev];
-            return updated.slice(0, MAX_LOG_ENTRIES);
-        });
-    }, []);
 
     // Poll sys_uptime_seconds for backend status detection
     useEffect(() => {
@@ -335,7 +269,6 @@ export default function MonitorBackendPage() {
                     prevUptimeRef.current = newUptime;
                     if (!initialLoadRef.current) return;
                     initialLoadRef.current = false;
-                    addLog('Bắt đầu giám sát backend', 'info');
                     setBackendStatus('online');
                     return;
                 }
@@ -346,25 +279,21 @@ export default function MonitorBackendPage() {
                     staleCountRef.current = 0;
                     if (backendStatus !== 'online') {
                         setBackendStatus('online');
-                        addLog('Backend đã hoạt động trở lại', 'info');
                     }
                 } else if (newUptime === oldUptime) {
                     // Scenario B: Stale
                     staleCountRef.current += 1;
                     if (staleCountRef.current >= STALE_THRESHOLD && backendStatus !== 'offline') {
                         setBackendStatus('offline');
-                        addLog(`Backend không phản hồi (đã ${staleCountRef.current} chu kỳ)`, 'error');
                     }
                 } else {
                     // Scenario C: Restart detected
                     prevUptimeRef.current = newUptime;
                     staleCountRef.current = 0;
                     setBackendStatus('restarted');
-                    addLog('Hệ thống vừa khởi động lại (uptime reset)', 'warning');
                     // Auto transition to online after a brief period
                     setTimeout(() => {
                         setBackendStatus('online');
-                        addLog('Backend online sau khởi động lại', 'info');
                     }, 15000);
                 }
             } catch (err) {
@@ -378,7 +307,7 @@ export default function MonitorBackendPage() {
         // Periodic polling
         const interval = setInterval(checkUptime, POLL_INTERVAL_MS);
         return () => clearInterval(interval);
-    }, [addLog, backendStatus]);
+    }, [backendStatus]);
 
     // Extract metric values
     const sysTemp = realtimeData.get('sys_temp')?.value ?? null;
@@ -434,29 +363,6 @@ export default function MonitorBackendPage() {
                             <MetricCard varName="sys_cpu" value={sysCpu} />
                             <MetricCard varName="sys_ram" value={sysRam} />
                             <MetricCard varName="sys_disk_free" value={sysDiskFree} />
-                        </div>
-                    </div>
-
-                    {/* Event Log */}
-                    <div className="rounded-xl border border-border bg-card overflow-hidden">
-                        <div className="flex items-center gap-2 px-5 py-4 border-b border-border">
-                            <ScrollText className="h-5 w-5 text-muted-foreground" />
-                            <h2 className="text-lg font-bold">Lịch sử sự kiện</h2>
-                            <span className="ml-auto text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                                {logs.length}/{MAX_LOG_ENTRIES}
-                            </span>
-                        </div>
-                        <div className="max-h-[400px] overflow-y-auto divide-y divide-border/50">
-                            {logs.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                                    <Activity className="h-8 w-8 mb-2 opacity-30" />
-                                    <p className="text-sm">Chưa có sự kiện nào</p>
-                                </div>
-                            ) : (
-                                logs.map(entry => (
-                                    <LogEntryRow key={entry.id} entry={entry} />
-                                ))
-                            )}
                         </div>
                     </div>
                 </div>
