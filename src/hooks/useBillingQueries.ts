@@ -72,10 +72,16 @@ function toChartData(
         const label = formatChartLabel(r.logical_ts, filterType);
         if (map.has(label)) {
             const existing = map.get(label)!;
-            if (existing.yield_kwh === null) existing.yield_kwh = 0;
-            if (existing.revenue_vnd === null) existing.revenue_vnd = 0;
-            existing.yield_kwh += r.yield_kwh;
-            existing.revenue_vnd += r.revenue_vnd;
+            if (existing.yield_kwh === null) {
+                existing.yield_kwh = r.yield_kwh;
+            } else {
+                existing.yield_kwh = Math.max(existing.yield_kwh, r.yield_kwh);
+            }
+            if (existing.revenue_vnd === null) {
+                existing.revenue_vnd = r.revenue_vnd;
+            } else {
+                existing.revenue_vnd = Math.max(existing.revenue_vnd, r.revenue_vnd);
+            }
         }
     });
 
