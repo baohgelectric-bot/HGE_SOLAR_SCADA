@@ -1,60 +1,79 @@
 @echo off
 chcp 65001 >nul
-title Deploy to Vercel via GitHub
+title HGESolarSCADA - Deploy to Vercel
+color 0F
 
-echo ============================================
+cd /d "d:\02-CONG VIEC HUNG GIANG\2025-HUNG GIANG\THANG 12\solar dashboard\code\frontend"
+
+echo.
+echo  ============================================
 echo   HGESolarSCADA - Auto Deploy to Vercel
-echo ============================================
+echo  ============================================
 echo.
 
-cd /d "%~dp0"
-
 :: Kiem tra co thay doi gi khong
-git diff --quiet --exit-code
-if %errorlevel%==0 (
-    git diff --cached --quiet --exit-code
-    if %errorlevel%==0 (
-        echo [!] Khong co thay doi nao de deploy.
-        echo.
-        pause
-        exit /b 0
-    )
+git status --short > "%TEMP%\git_status.tmp" 2>&1
+set /p CHANGES=<"%TEMP%\git_status.tmp"
+if "%CHANGES%"=="" (
+    echo  [!] Khong co thay doi nao de deploy.
+    echo.
+    echo  Nhan phim bat ky de dong cua so nay...
+    pause >nul
+    exit /b 0
 )
 
-:: Hien thi cac file da thay doi
-echo [1/3] Cac file da thay doi:
-echo ----------------------------------------
+echo  Cac file da thay doi:
+echo  ----------------------------------------
 git status --short
-echo ----------------------------------------
+echo  ----------------------------------------
 echo.
 
 :: Stage tat ca
-echo [2/3] Dang stage tat ca file...
+echo  [1/3] Dang stage tat ca file...
 git add -A
-echo OK
+if %errorlevel% neq 0 (
+    echo.
+    echo  [LOI] Stage that bai!
+    echo  Nhan phim bat ky de dong...
+    pause >nul
+    exit /b 1
+)
+echo  OK!
 echo.
 
-:: Commit voi thoi gian hien tai
+:: Commit
 set COMMIT_MSG=update: deploy %date% %time:~0,8%
-echo [3/3] Dang commit: "%COMMIT_MSG%"
+echo  [2/3] Dang commit: "%COMMIT_MSG%"
 git commit -m "%COMMIT_MSG%"
+if %errorlevel% neq 0 (
+    echo.
+    echo  [LOI] Commit that bai!
+    echo  Nhan phim bat ky de dong...
+    pause >nul
+    exit /b 1
+)
 echo.
 
-:: Push len GitHub
-echo [>>>] Dang push len GitHub...
-git push
-echo.
-
-if %errorlevel%==0 (
-    echo ============================================
-    echo   THANH CONG! Vercel se tu dong build.
-    echo   Cho 1-2 phut roi kiem tra trang web.
-    echo ============================================
-) else (
-    echo ============================================
-    echo   LOI! Push that bai. Kiem tra ket noi mang.
-    echo ============================================
+:: Push
+echo  [3/3] Dang push len GitHub...
+git push 2>&1
+if %errorlevel% neq 0 (
+    echo.
+    echo  ============================================
+    echo   LOI! Push that bai.
+    echo   Kiem tra ket noi mang hoac xac thuc GitHub.
+    echo  ============================================
+    echo.
+    echo  Nhan phim bat ky de dong...
+    pause >nul
+    exit /b 1
 )
 
 echo.
-pause
+echo  ============================================
+echo   THANH CONG! Da push len GitHub.
+echo   Vercel se tu dong build trong 1-2 phut.
+echo  ============================================
+echo.
+echo  Nhan phim bat ky de dong cua so nay...
+pause >nul
