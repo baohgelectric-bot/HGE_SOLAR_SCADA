@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import {
     Cpu,
     Thermometer,
@@ -11,6 +11,10 @@ import {
     RotateCcw,
     Clock,
     Server,
+    ScrollText,
+    Activity,
+    Wifi,
+    WifiOff,
 } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { Header } from '@/components/layout/Header';
@@ -19,10 +23,16 @@ import { useRealtimeData } from '@/hooks/useRealtimeData';
 /* ─── Types ─── */
 type BackendStatus = 'online' | 'offline' | 'restarted';
 
+interface BackendEvent {
+    id: number;
+    event_type: BackendStatus;
+    message: string;
+    recorded_at: string;
+}
+
 /* ─── Constants ─── */
 const SYS_VARS = ['sys_temp', 'sys_cpu', 'sys_ram', 'sys_disk_free', 'sys_uptime_seconds'];
-const POLL_INTERVAL_MS = 1 * 60 * 1000; // 1 minutes
-const STALE_THRESHOLD = 3; // stale cycles before offline
+const EVENTS_REFETCH_MS = 30_000; // 30 seconds
 
 /* ─── Helpers ─── */
 function formatUptime(seconds: number | null): string {
@@ -235,79 +245,83 @@ function StatusBadge({ status }: { status: BackendStatus }) {
     );
 }
 
+/* ─── EventRow ─── */
+function EventRow({ event }: { event: BackendEvent }) {
+    const timeStr = new Date(event.recorded_at).toLocaleString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+    });
+
+    const typeConfig = {
+        online: { color: 'text-sky-400', bg: 'bg-sky-500/10', icon: Wifi, label: 'ONLINE' },
+        restarted: { color: 'text-amber-400', bg: 'bg-amber-500/10', icon: RotateCcw, label: 'RESTART' },
+        offline: { color: 'text-red-400', bg: 'bg-red-500/10', icon: WifiOff, label: 'OFFLINE' },
+    }[event.event_type];
+
+    const Icon = typeConfig.icon;
+
+    return (
+        <div className="flex items-start gap-3 px-4 py-2.5 rounded-lg hover:bg-muted/50 transition-colors group">
+            <div className={`mt-0.5 p-1 rounded ${typeConfig.bg}`}>
+                <Icon className={`h-3.5 w-3.5 ${typeConfig.color}`} />
+            </div>
+            <div className="flex-1 min-w-0">
+                <p className="text-sm leading-snug">{event.message}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{timeStr}</p>
+            </div>
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${typeConfig.bg} ${typeConfig.color} opacity-60 group-hover:opacity-100 transition-opacity`}>
+                {typeConfig.label}
+            </span>
+        </div>
+    );
+}
+
 /* ─── Main Component ─── */
 export default function MonitorBackendPage() {
     const { data: realtimeData, connection } = useRealtimeData({
         varNames: SYS_VARS,
     });
 
+    const [events, setEvents] = useState<BackendEvent[]>([]);
     const [backendStatus, setBackendStatus] = useState<BackendStatus>('online');
-    const prevUptimeRef = useRef<number | null>(null);
-    const staleCountRef = useRef(0);
-    const initialLoadRef = useRef(true);
 
-    // Poll sys_uptime_seconds for backend status detection
-    useEffect(() => {
-        const supabase = getSupabaseBrowserClient();
+    // Fetch events from backend_events table
+    const fetchEvents = useCallback(async () => {
+        try {
+            const supabase = getSupabaseBrowserClient();
+            const { data, error } = await supabase
+                .from('backend_events')
+                .select('*')
+                .order('recorded_at', { ascending: false })
+                .limit(20);
 
-        const checkUptime = async () => {
-            try {
-                const { data, error } = await supabase
-                    .from('realtime_states')
-                    .select('*')
-                    .eq('var_name', 'sys_uptime_seconds')
-                    .single();
-
-                if (error || !data) return;
-
-                const row = data as { value: number | null;[key: string]: unknown };
-                const newUptime = (row.value ?? 0) as number;
-                const oldUptime = prevUptimeRef.current;
-
-                if (oldUptime === null) {
-                    // First load
-                    prevUptimeRef.current = newUptime;
-                    if (!initialLoadRef.current) return;
-                    initialLoadRef.current = false;
-                    setBackendStatus('online');
-                    return;
-                }
-
-                if (newUptime > oldUptime) {
-                    // Scenario A: Normal operation
-                    prevUptimeRef.current = newUptime;
-                    staleCountRef.current = 0;
-                    if (backendStatus !== 'online') {
-                        setBackendStatus('online');
-                    }
-                } else if (newUptime === oldUptime) {
-                    // Scenario B: Stale
-                    staleCountRef.current += 1;
-                    if (staleCountRef.current >= STALE_THRESHOLD && backendStatus !== 'offline') {
-                        setBackendStatus('offline');
-                    }
-                } else {
-                    // Scenario C: Restart detected
-                    prevUptimeRef.current = newUptime;
-                    staleCountRef.current = 0;
-                    setBackendStatus('restarted');
-                    // Auto transition to online after a brief period
-                    setTimeout(() => {
-                        setBackendStatus('online');
-                    }, 15000);
-                }
-            } catch (err) {
-                console.error('Uptime check failed:', err);
+            if (error) {
+                console.error('Failed to fetch backend events:', error);
+                return;
             }
-        };
 
-        // Initial check
-        checkUptime();
+            const rows = (data ?? []) as BackendEvent[];
+            setEvents(rows);
 
-        // Periodic polling
-        const interval = setInterval(checkUptime, POLL_INTERVAL_MS);
+            // Derive current status from the latest event
+            if (rows.length > 0) {
+                setBackendStatus(rows[0].event_type);
+            }
+        } catch (err) {
+            console.error('Failed to fetch backend events:', err);
+        }
+    }, []);
+
+    // Initial load + periodic refresh
+    useEffect(() => {
+        fetchEvents();
+        const interval = setInterval(fetchEvents, EVENTS_REFETCH_MS);
         return () => clearInterval(interval);
-    }, [backendStatus]);
+    }, [fetchEvents]);
 
     // Extract metric values
     const sysTemp = realtimeData.get('sys_temp')?.value ?? null;
@@ -365,8 +379,32 @@ export default function MonitorBackendPage() {
                             <MetricCard varName="sys_disk_free" value={sysDiskFree} />
                         </div>
                     </div>
+
+                    {/* Event Log from Database */}
+                    <div className="rounded-xl border border-border bg-card overflow-hidden">
+                        <div className="flex items-center gap-2 px-5 py-4 border-b border-border">
+                            <ScrollText className="h-5 w-5 text-muted-foreground" />
+                            <h2 className="text-lg font-bold">Lịch sử sự kiện</h2>
+                            <span className="ml-auto text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                                {events.length} sự kiện
+                            </span>
+                        </div>
+                        <div className="max-h-[400px] overflow-y-auto divide-y divide-border/50">
+                            {events.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                                    <Activity className="h-8 w-8 mb-2 opacity-30" />
+                                    <p className="text-sm">Chưa có sự kiện nào</p>
+                                </div>
+                            ) : (
+                                events.map(event => (
+                                    <EventRow key={event.id} event={event} />
+                                ))
+                            )}
+                        </div>
+                    </div>
                 </div>
             </main>
         </div>
     );
 }
+
