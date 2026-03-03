@@ -26,6 +26,7 @@ import { formatPower, formatEnergy, formatCurrency, formatRevenueKVND } from '@/
 import { KpiCard } from '@/components/scada/KpiCard';
 import { RealtimeCard } from '@/components/scada/RealtimeCard';
 import { ChartRow } from '@/components/scada/ChartRow';
+import { PowerLineChart } from '@/components/charts/PowerLineChart';
 import { PieChartWidget } from '@/components/charts/PieChartWidget';
 import { Header } from '@/components/layout/Header';
 
@@ -252,6 +253,9 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
                             />
                         </div>
                     </div>
+
+                    {/* Power Profile LineChart */}
+                    <PowerLineChart scope={scope} />
 
                     {/* Realtime Inverter Cards */}
                     {inverterVars.length > 0 && (
