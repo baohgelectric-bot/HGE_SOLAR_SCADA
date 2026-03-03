@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import {
     Cpu,
-    Thermometer,
     HardDrive,
     MemoryStick,
     CheckCircle2,
@@ -31,7 +30,7 @@ interface BackendEvent {
 }
 
 /* ─── Constants ─── */
-const SYS_VARS = ['sys_temp', 'sys_cpu', 'sys_ram', 'sys_disk_free', 'sys_uptime_seconds'];
+const SYS_VARS = ['sys_ram', 'sys_disk_free', 'sys_uptime_seconds'];
 const EVENTS_REFETCH_MS = 30_000; // 30 seconds
 
 /* ─── Helpers ─── */
@@ -50,11 +49,6 @@ function formatUptime(seconds: number | null): string {
 function getMetricColor(varName: string, value: number | null): string {
     if (value == null) return 'text-muted-foreground';
     switch (varName) {
-        case 'sys_temp':
-            if (value >= 80) return 'text-red-500';
-            if (value >= 60) return 'text-amber-500';
-            return 'text-emerald-500';
-        case 'sys_cpu':
         case 'sys_ram':
             if (value >= 90) return 'text-red-500';
             if (value >= 70) return 'text-amber-500';
@@ -71,11 +65,6 @@ function getMetricColor(varName: string, value: number | null): string {
 function getMetricBgColor(varName: string, value: number | null): string {
     if (value == null) return 'bg-muted/50';
     switch (varName) {
-        case 'sys_temp':
-            if (value >= 80) return 'bg-red-500/10';
-            if (value >= 60) return 'bg-amber-500/10';
-            return 'bg-emerald-500/10';
-        case 'sys_cpu':
         case 'sys_ram':
             if (value >= 90) return 'bg-red-500/10';
             if (value >= 70) return 'bg-amber-500/10';
@@ -92,9 +81,6 @@ function getMetricBgColor(varName: string, value: number | null): string {
 function getProgressPercent(varName: string, value: number | null): number {
     if (value == null) return 0;
     switch (varName) {
-        case 'sys_temp':
-            return Math.min(100, (value / 100) * 100);
-        case 'sys_cpu':
         case 'sys_ram':
             return Math.min(100, value);
         case 'sys_disk_free':
@@ -106,8 +92,6 @@ function getProgressPercent(varName: string, value: number | null): number {
 }
 
 const METRIC_CONFIG: Record<string, { label: string; unit: string; icon: typeof Cpu }> = {
-    sys_temp: { label: 'Nhiệt độ CPU', unit: '°C', icon: Thermometer },
-    sys_cpu: { label: 'CPU', unit: '%', icon: Cpu },
     sys_ram: { label: 'RAM', unit: '%', icon: MemoryStick },
     sys_disk_free: { label: 'Bộ nhớ trống', unit: 'GB', icon: HardDrive },
 };
@@ -324,8 +308,6 @@ export default function MonitorBackendPage() {
     }, [fetchEvents]);
 
     // Extract metric values
-    const sysTemp = realtimeData.get('sys_temp')?.value ?? null;
-    const sysCpu = realtimeData.get('sys_cpu')?.value ?? null;
     const sysRam = realtimeData.get('sys_ram')?.value ?? null;
     const sysDiskFree = realtimeData.get('sys_disk_free')?.value ?? null;
     const sysUptime = realtimeData.get('sys_uptime_seconds')?.value ?? null;
@@ -372,9 +354,7 @@ export default function MonitorBackendPage() {
                             <Server className="h-5 w-5 text-muted-foreground" />
                             <h2 className="text-lg font-bold">Tài nguyên hệ thống</h2>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <MetricCard varName="sys_temp" value={sysTemp} />
-                            <MetricCard varName="sys_cpu" value={sysCpu} />
+                        <div className="grid grid-cols-2 gap-4">
                             <MetricCard varName="sys_ram" value={sysRam} />
                             <MetricCard varName="sys_disk_free" value={sysDiskFree} />
                         </div>
