@@ -120,7 +120,7 @@ export function ChartRow({ scope, filterType }: ChartRowProps) {
         <div className="space-y-3">
             <div className="flex items-center justify-between mt-8 mb-4">
                 <h2 className="text-xl font-bold border-l-4 border-primary pl-3">
-                    Theo {FILTER_LABELS[filterType]}
+                    Thống Kê Theo {FILTER_LABELS[filterType]}
                 </h2>
                 <div className="flex items-center gap-2">
                     {/* Back button */}
