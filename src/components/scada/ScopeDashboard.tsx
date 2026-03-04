@@ -139,6 +139,7 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
                                     valueLabel="Công suất"
                                     height={240}
                                     legendPosition="right"
+                                    colors={['#3b82f6', '#6b7280']}
                                     isLoading={connection.status === ConnectionStatus.DISCONNECTED && !powerState}
                                 />
                             </div>
