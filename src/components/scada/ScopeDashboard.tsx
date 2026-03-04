@@ -86,7 +86,9 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
         const metadata = scadaPoints?.find((p) => p.var_name === varName);
         const friendlyName = metadata?.display_name ?? state?.var_name ?? varName;
         const isStaleVal = state?.isStaleComputed ?? true;
-        const computedQuality = (!state || state.value == null || isStaleVal)
+        const hour = new Date().toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'Asia/Ho_Chi_Minh' });
+        const isDaytime = Number(hour) >= 4 && Number(hour) < 19;
+        const computedQuality = (!state || state.value == null || isStaleVal || (isDaytime && state.value === 0))
             ? Quality.OFFLINE
             : Quality.GOOD;
         return (
