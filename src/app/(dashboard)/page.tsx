@@ -118,6 +118,67 @@ export default function PlantOverviewPage() {
                         })}
                     </div>
 
+                    {/* Contribution Pie Charts */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Tỷ lệ đóng góp theo phân xưởng */}
+                        {(() => {
+                            const umc4aPower = realtimeData.get(SCOPE_POWER_VAR[Scope.TOTAL_A])?.value ?? 0;
+                            const umc4bPower = realtimeData.get(SCOPE_POWER_VAR[Scope.TOTAL_B])?.value ?? 0;
+                            const totalCapacity = 880;
+                            const reserve = Math.max(0, totalCapacity - umc4aPower - umc4bPower);
+                            const isLoading = connection.status === ConnectionStatus.DISCONNECTED
+                                && !realtimeData.get(SCOPE_POWER_VAR[Scope.TOTAL_A]);
+                            return (
+                                <div className="rounded-xl border border-border bg-card p-4">
+                                    <PieChartWidget
+                                        data={[
+                                            { scope: 'UMC4A (kW)', total_kwh: umc4aPower },
+                                            { scope: 'UMC4B (kW)', total_kwh: umc4bPower },
+                                            { scope: 'Dự phòng (kW)', total_kwh: reserve },
+                                        ]}
+                                        title="Tỷ lệ đóng góp theo phân xưởng"
+                                        description={`Tổng công suất thiết kế: ${formatPower(totalCapacity)} kW`}
+                                        unit="kW"
+                                        valueLabel="Công suất"
+                                        height={280}
+                                        legendPosition="right"
+                                        isLoading={isLoading}
+                                    />
+                                </div>
+                            );
+                        })()}
+
+                        {/* Tỷ lệ đóng góp theo DM */}
+                        {(() => {
+                            const dm1Power = realtimeData.get(SCOPE_POWER_VAR[Scope.DM1])?.value ?? 0;
+                            const dm2Power = realtimeData.get(SCOPE_POWER_VAR[Scope.DM2])?.value ?? 0;
+                            const dm3Power = realtimeData.get(SCOPE_POWER_VAR[Scope.DM3])?.value ?? 0;
+                            const totalCapacity = 880;
+                            const reserve = Math.max(0, totalCapacity - dm1Power - dm2Power - dm3Power);
+                            const isLoading = connection.status === ConnectionStatus.DISCONNECTED
+                                && !realtimeData.get(SCOPE_POWER_VAR[Scope.DM1]);
+                            return (
+                                <div className="rounded-xl border border-border bg-card p-4">
+                                    <PieChartWidget
+                                        data={[
+                                            { scope: 'DM1 (kW)', total_kwh: dm1Power },
+                                            { scope: 'DM2 (kW)', total_kwh: dm2Power },
+                                            { scope: 'DM3 (kW)', total_kwh: dm3Power },
+                                            { scope: 'Dự phòng (kW)', total_kwh: reserve },
+                                        ]}
+                                        title="Tỷ lệ đóng góp theo DM"
+                                        description={`Tổng công suất thiết kế: ${formatPower(totalCapacity)} kW`}
+                                        unit="kW"
+                                        valueLabel="Công suất"
+                                        height={280}
+                                        legendPosition="right"
+                                        isLoading={isLoading}
+                                    />
+                                </div>
+                            );
+                        })()}
+                    </div>
+
                     {/* Realtime Inverter Cards from TOTAL scope */}
                     {inverterVars.length > 0 && (
                         <div>
