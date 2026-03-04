@@ -111,6 +111,7 @@ export default function PlantOverviewPage() {
                                         valueLabel="Công suất"
                                         height={280}
                                         legendPosition="right"
+                                        colors={['#3b82f6', '#10b981', '#6b7280']}
                                         isLoading={isLoading}
                                     />
                                 </div>
@@ -141,6 +142,7 @@ export default function PlantOverviewPage() {
                                         valueLabel="Công suất"
                                         height={280}
                                         legendPosition="right"
+                                        colors={['#3b82f6', '#10b981', '#f59e0b', '#6b7280']}
                                         isLoading={isLoading}
                                     />
                                 </div>
@@ -172,6 +174,7 @@ export default function PlantOverviewPage() {
                                         valueLabel="Công suất"
                                         height={240}
                                         legendPosition="bottom"
+                                        colors={['#3b82f6', '#6b7280']}
                                         isLoading={isLoading}
                                     />
                                 </div>

@@ -32,6 +32,7 @@ interface PieChartWidgetProps {
     height?: number;
     description?: string;
     legendPosition?: 'bottom' | 'right';
+    colors?: string[];
 }
 
 export function PieChartWidget({
@@ -47,6 +48,7 @@ export function PieChartWidget({
     height = 320,
     description,
     legendPosition = 'bottom',
+    colors,
 }: PieChartWidgetProps) {
     const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
@@ -138,7 +140,7 @@ export function PieChartWidget({
                                     return (
                                         <Cell
                                             key={`cell-${entry.scope}-${index}`}
-                                            fill={CHART_COLORS.pieSlices[index % CHART_COLORS.pieSlices.length]}
+                                            fill={(colors ?? CHART_COLORS.pieSlices)[index % (colors ?? CHART_COLORS.pieSlices).length]}
                                             style={{
                                                 cursor: 'pointer',
                                                 transition: 'opacity 0.2s ease, transform 0.2s ease',
@@ -192,7 +194,7 @@ export function PieChartWidget({
                     style={{ width: isRightLegend ? '45%' : '100%' }}
                 >
                     {chartData.map((entry, index) => {
-                        const color = CHART_COLORS.pieSlices[index % CHART_COLORS.pieSlices.length];
+                        const color = (colors ?? CHART_COLORS.pieSlices)[index % (colors ?? CHART_COLORS.pieSlices).length];
                         const percent = total > 0 ? ((entry.value / total) * 100).toFixed(1) : '0';
                         const formatted =
                             unit === 'kW' ? formatPower(entry.value) : formatEnergy(entry.value);
