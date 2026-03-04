@@ -54,7 +54,7 @@ export function Header({ connection }: HeaderProps) {
     };
 
     return (
-        <header className="sticky top-0 z-30 h-16 bg-card/80 backdrop-blur-md border-b border-border flex items-center justify-between px-6 lg:px-8">
+        <header className="sticky top-0 z-30 h-14 sm:h-16 bg-card/80 backdrop-blur-md border-b border-border flex items-center justify-between px-3 sm:px-6 lg:px-8">
             {/* Left side — spacer for mobile hamburger */}
             <div className="lg:hidden w-10" />
 
@@ -66,9 +66,9 @@ export function Header({ connection }: HeaderProps) {
             </div>
 
             {/* Right side — status indicators */}
-            <div className="flex items-center gap-4 ml-auto">
+            <div className="flex items-center gap-2 sm:gap-4 ml-auto">
                 {/* Cloud Status */}
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border text-base">
+                <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-muted/50 border border-border text-xs sm:text-base">
                     {getConnectionIcon()}
                     <span className="hidden sm:inline text-foreground/80 font-medium">
                         {getConnectionLabel()}
@@ -77,8 +77,8 @@ export function Header({ connection }: HeaderProps) {
 
                 {/* Last Sync Time */}
                 {connection.lastSyncTime && (
-                    <div className="flex items-center gap-1.5 text-base font-medium text-foreground/80 bg-muted/50 px-3 py-1.5 rounded-full border border-border">
-                        <RefreshCw className="h-4 w-4" />
+                    <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-base font-medium text-foreground/80 bg-muted/50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-border">
+                        <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
                         <span>
                             Cập nhật lần cuối {formatDistanceToNow(connection.lastSyncTime, { addSuffix: true, locale: vi })}
                         </span>
@@ -86,7 +86,7 @@ export function Header({ connection }: HeaderProps) {
                 )}
 
                 {/* System Time */}
-                <div className="hidden sm:block text-base font-mono font-medium text-foreground/80 bg-muted/50 px-3 py-1.5 rounded-full border border-border">
+                <div className="hidden sm:block text-xs sm:text-base font-mono font-medium text-foreground/80 bg-muted/50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-border">
                     {systemTime}
                 </div>
 
