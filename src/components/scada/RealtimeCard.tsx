@@ -92,8 +92,11 @@ export function RealtimeCard({
             {/* Quality label */}
             <div className="mt-2 flex items-center gap-1.5">
                 <span className={cn('h-2 w-2 rounded-full', dotColor)} />
-                <span className="text-[12px] text-muted-foreground uppercase tracking-wider">
-                    {quality}
+                <span className={cn(
+                    'text-[12px] font-bold uppercase tracking-wider',
+                    quality === Quality.OFFLINE ? 'text-red-500' : 'text-emerald-500',
+                )}>
+                    {quality === Quality.OFFLINE ? 'OFFLINE' : 'ONLINE'}
                 </span>
             </div>
         </div>
