@@ -77,7 +77,7 @@ export function Header({ connection }: HeaderProps) {
 
                 {/* Last Sync Time */}
                 {connection.lastSyncTime && (
-                    <div className="hidden md:flex items-center gap-1.5 text-base font-medium text-foreground/80 bg-muted/50 px-3 py-1.5 rounded-full border border-border">
+                    <div className="flex items-center gap-1.5 text-base font-medium text-foreground/80 bg-muted/50 px-3 py-1.5 rounded-full border border-border">
                         <RefreshCw className="h-4 w-4" />
                         <span>
                             Cập nhật lần cuối {formatDistanceToNow(connection.lastSyncTime, { addSuffix: true, locale: vi })}
