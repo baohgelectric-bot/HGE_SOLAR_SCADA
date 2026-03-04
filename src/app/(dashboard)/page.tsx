@@ -87,37 +87,6 @@ export default function PlantOverviewPage() {
                         </p>
                     </div>
 
-                    {/* 6 Pie Charts */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {OVERVIEW_SCOPES.map(scope => {
-                            const powerState = realtimeData.get(SCOPE_POWER_VAR[scope]);
-                            const powerValue = powerState?.value ?? null;
-                            const capacity = SCOPE_CAPACITY[scope];
-                            const currentPower = powerValue ?? 0;
-                            const reservePower = Math.max(0, capacity - currentPower);
-                            const isLoading = connection.status === ConnectionStatus.DISCONNECTED && !powerState;
-
-                            return (
-                                <div key={scope} className="rounded-xl border border-border bg-card p-4">
-                                    <h2 className="text-lg font-bold mb-4 text-center">{SCOPE_LABELS[scope]}</h2>
-                                    <PieChartWidget
-                                        data={[
-                                            { scope: 'Đang phát (kW)', total_kwh: currentPower },
-                                            { scope: 'Dự phòng (kW)', total_kwh: reservePower }
-                                        ]}
-                                        title="Công suất phát từ hệ SOLAR"
-                                        description={`Tổng công suất thiết kế: ${formatPower(capacity)} kW`}
-                                        unit="kW"
-                                        valueLabel="Công suất"
-                                        height={240}
-                                        legendPosition="bottom"
-                                        isLoading={isLoading}
-                                    />
-                                </div>
-                            );
-                        })}
-                    </div>
-
                     {/* Contribution Pie Charts */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Tỷ lệ đóng góp theo phân xưởng */}
@@ -177,6 +146,37 @@ export default function PlantOverviewPage() {
                                 </div>
                             );
                         })()}
+                    </div>
+
+                    {/* 6 Pie Charts */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {OVERVIEW_SCOPES.map(scope => {
+                            const powerState = realtimeData.get(SCOPE_POWER_VAR[scope]);
+                            const powerValue = powerState?.value ?? null;
+                            const capacity = SCOPE_CAPACITY[scope];
+                            const currentPower = powerValue ?? 0;
+                            const reservePower = Math.max(0, capacity - currentPower);
+                            const isLoading = connection.status === ConnectionStatus.DISCONNECTED && !powerState;
+
+                            return (
+                                <div key={scope} className="rounded-xl border border-border bg-card p-4">
+                                    <h2 className="text-lg font-bold mb-4 text-center">{SCOPE_LABELS[scope]}</h2>
+                                    <PieChartWidget
+                                        data={[
+                                            { scope: 'Đang phát (kW)', total_kwh: currentPower },
+                                            { scope: 'Dự phòng (kW)', total_kwh: reservePower }
+                                        ]}
+                                        title="Công suất phát từ hệ SOLAR"
+                                        description={`Tổng công suất thiết kế: ${formatPower(capacity)} kW`}
+                                        unit="kW"
+                                        valueLabel="Công suất"
+                                        height={240}
+                                        legendPosition="bottom"
+                                        isLoading={isLoading}
+                                    />
+                                </div>
+                            );
+                        })}
                     </div>
 
                     {/* Realtime Inverter Cards from TOTAL scope */}
