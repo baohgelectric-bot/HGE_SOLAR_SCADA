@@ -92,7 +92,7 @@ export function RealtimeCard({
             {/* Quality label */}
             <div className="mt-2 flex items-center gap-1.5">
                 <span className={cn('h-2 w-2 rounded-full', dotColor)} />
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                <span className="text-[12px] text-muted-foreground uppercase tracking-wider">
                     {quality}
                 </span>
             </div>
