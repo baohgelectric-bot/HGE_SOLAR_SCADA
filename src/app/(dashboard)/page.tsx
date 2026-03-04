@@ -53,7 +53,7 @@ export default function PlantOverviewPage() {
         const friendlyName = metadata?.display_name ?? state?.var_name ?? varName;
         const isStaleVal = state?.isStaleComputed ?? true;
         const hour = new Date().toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'Asia/Ho_Chi_Minh' });
-        const isDaytime = Number(hour) >= 4 && Number(hour) < 19;
+        const isDaytime = Number(hour) >= 5 && Number(hour) < 18;
         const computedQuality = (!state || state.value == null || isStaleVal || (isDaytime && state.value === 0))
             ? Quality.OFFLINE
             : Quality.GOOD;
