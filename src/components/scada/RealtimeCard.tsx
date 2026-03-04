@@ -93,7 +93,7 @@ export function RealtimeCard({
             <div className="mt-2 flex items-center gap-1.5">
                 <span className={cn('h-2 w-2 rounded-full', dotColor)} />
                 <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                    {isStale ? 'STALE' : quality}
+                    {quality}
                 </span>
             </div>
         </div>
