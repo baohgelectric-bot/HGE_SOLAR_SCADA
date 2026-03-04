@@ -216,7 +216,7 @@ export function getScopeLabel(scope: Scope | DbScope | string): string {
 
 // ─── Stale threshold ──────────────────────────────────────────────────────
 
-export const STALE_THRESHOLD_MS = 30_000;
+export const STALE_THRESHOLD_MS = 420_000; // 7 phút (chu kỳ 5 phút + 2 phút buffer)
 
 // ─── Timezone ─────────────────────────────────────────────────────────────
 

@@ -96,10 +96,10 @@ create table public.realtime_states (
 
 create trigger trg_realtime_states_updated_at
 before update on public.realtime_states
-for each row
-execute function public.update_updated_at_column();
+for each rowion public.update_updated_at_column();
 
-comment on table public.realtime_states is 'Latest value snapshot per var_name';
+comment on table public.realtime
+execute funct_states is 'Latest value snapshot per var_name';
 comment on column public.realtime_states.var_name is 'Primary key, duy nhất cho mỗi biến';
 comment on column public.realtime_states.source_ts is 'Timestamp nguồn từ backend gửi lên';
 comment on column public.realtime_states.is_stale is 'Cờ dữ liệu cũ / treo';
