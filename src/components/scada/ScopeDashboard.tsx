@@ -220,7 +220,7 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
                                 loading={isKpiLoading}
                             />
                             <KpiCard
-                                label="Công suất nhà máy đang dùng"
+                                label="Tổng công suất tiêu thụ"
                                 value={formatPower(plantConsumption)}
                                 unit="kW"
                                 icon={Zap}
