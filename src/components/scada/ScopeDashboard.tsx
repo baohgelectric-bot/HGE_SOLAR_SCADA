@@ -85,14 +85,18 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
         const state = realtimeData.get(varName);
         const metadata = scadaPoints?.find((p) => p.var_name === varName);
         const friendlyName = metadata?.display_name ?? state?.var_name ?? varName;
+        const isStaleVal = state?.isStaleComputed ?? true;
+        const computedQuality = (!state || state.value == null || isStaleVal)
+            ? Quality.OFFLINE
+            : Quality.GOOD;
         return (
             <RealtimeCard
                 key={varName}
                 displayName={friendlyName}
                 value={state?.value ?? null}
                 unit={metadata?.unit ?? 'kW'}
-                quality={(state?.quality as Quality) ?? Quality.OFFLINE}
-                isStale={state?.isStaleComputed ?? true}
+                quality={computedQuality}
+                isStale={isStaleVal}
                 loading={
                     connection.status === ConnectionStatus.DISCONNECTED &&
                     !state

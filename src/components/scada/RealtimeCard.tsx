@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { formatPower } from '@/lib/utils';
 import { Quality, QUALITY_COLORS, STALE_COLORS } from '@/config/constants';
-import { AlertTriangle, Wifi, WifiOff, Zap } from 'lucide-react';
+import { WifiOff, Zap } from 'lucide-react';
 
 interface RealtimeCardProps {
     displayName: string;
@@ -47,8 +47,6 @@ export function RealtimeCard({
         switch (quality) {
             case Quality.GOOD:
                 return <Zap className="h-4 w-4" />;
-            case Quality.BAD:
-                return <AlertTriangle className="h-4 w-4" />;
             case Quality.OFFLINE:
                 return <WifiOff className="h-4 w-4" />;
         }
