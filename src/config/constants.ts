@@ -143,6 +143,7 @@ export const SCOPE_CHILDREN: Record<string, Scope[]> = {
 // ─── Comparison scopes ────────────────────────────────────────────────────
 
 export const COMPARISON_SCOPES: Scope[] = [
+  Scope.TOTAL,
   Scope.TOTAL_A,
   Scope.TOTAL_B,
   Scope.DM1,
@@ -188,6 +189,7 @@ export const CHART_COLORS = {
   tertiary: '#f59e0b',
   quaternary: '#8b5cf6',
   quinary: '#ef4444',
+  senary: '#06b6d4',
   pieSlices: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'],
 } as const;
 

@@ -223,6 +223,7 @@ export function ComparisonPanel({ className }: ComparisonPanelProps) {
         CHART_COLORS.tertiary,
         CHART_COLORS.quaternary,
         CHART_COLORS.quinary,
+        CHART_COLORS.senary,
     ];
 
     return (
@@ -230,7 +231,7 @@ export function ComparisonPanel({ className }: ComparisonPanelProps) {
             {/* Header with navigation */}
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold border-l-4 border-primary pl-3">
-                    Thống Kê Theo {FILTER_LABELS[filterType]} — So sánh 5 khu vực
+                    Thống Kê Theo {FILTER_LABELS[filterType]} — So sánh 6 khu vực
                 </h2>
                 <div className="flex items-center gap-2">
                     {/* Back button */}
