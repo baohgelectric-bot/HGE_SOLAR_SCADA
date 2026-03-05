@@ -5,13 +5,7 @@ import { Download, Building2, Calendar, FileSpreadsheet, FileBarChart, User, Loc
 import { Scope, SCOPE_LABELS } from '@/config/constants';
 import { Header } from '@/components/layout/Header';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-
-// ── Hardcoded accounts ───────────────────────────────────────────────────
-const ALLOWED_ACCOUNTS = [
-    { user: 'admin1', password: 'umc4dl' },
-    { user: 'admin2', password: 'hgedlo' },
-    { user: 'admin3', password: 'baodlo' },
-];
+import { ALLOWED_ACCOUNTS, hashPassword } from '@/config/auth';
 
 const REPORT_TYPE_OPTIONS = [
     { value: 'ALL', label: 'Tất cả' },
@@ -75,9 +69,10 @@ export default function ExportPage() {
             return;
         }
 
-        // 2. Validate credentials
+        // 2. Validate credentials (SHA-256 hash comparison)
+        const inputHash = await hashPassword(password.trim());
         const account = ALLOWED_ACCOUNTS.find(
-            (a) => a.user === username.trim() && a.password === password.trim()
+            (a) => a.user === username.trim() && a.hash === inputHash
         );
         if (!account) {
             setAuthMessage({ type: 'error', text: 'Tên đăng nhập hoặc mật khẩu không đúng' });
