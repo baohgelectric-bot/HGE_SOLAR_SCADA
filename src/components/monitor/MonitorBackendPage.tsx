@@ -245,31 +245,60 @@ function DeviceStatusCard({ name, statusValue }: { name: string; statusValue: nu
     const isOnline = statusValue === 1.0;
     const isUnknown = statusValue === null || statusValue === undefined;
 
-    const bgClass = isOnline ? 'bg-emerald-500/10 border-emerald-500/20' : (isUnknown ? 'bg-muted/30 border-border/50' : 'bg-red-500/10 border-red-500/30');
-    const textClass = isOnline ? 'text-emerald-500' : (isUnknown ? 'text-muted-foreground' : 'text-red-500');
-    const Icon = isOnline ? CheckCircle2 : (isUnknown ? Wifi : XCircle);
-    const label = isOnline ? 'Online' : (isUnknown ? 'N/A' : 'Offline');
+    const config = isOnline ? {
+        icon: CheckCircle2,
+        label: 'Online',
+        desc: 'Đang kết nối bình thường',
+        color: 'text-emerald-500',
+        bg: 'bg-emerald-500/10',
+        border: 'border-emerald-500/20',
+        ring: 'ring-emerald-500/20',
+        pulse: 'bg-emerald-500',
+    } : isUnknown ? {
+        icon: Wifi,
+        label: 'N/A',
+        desc: 'Chưa có thông tin kết nối',
+        color: 'text-muted-foreground',
+        bg: 'bg-muted/30',
+        border: 'border-border/50',
+        ring: 'ring-border/10',
+        pulse: 'bg-muted-foreground',
+    } : {
+        icon: XCircle,
+        label: 'Offline',
+        desc: 'Mất kết nối thiết bị!',
+        color: 'text-red-500',
+        bg: 'bg-red-500/10',
+        border: 'border-red-500/20',
+        ring: 'ring-red-500/20',
+        pulse: 'bg-red-500',
+    };
+
+    const Icon = config.icon;
+    const deviceName = name.replace('_Com_Status', '');
 
     return (
-        <div className={`rounded-xl border p-4 flex items-center justify-between ${bgClass} transition-colors`}>
+        <div className={`rounded-xl border ${config.border} ${config.bg} p-4 ring-1 ${config.ring} transition-all duration-500`}>
             <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-full ${isOnline ? 'bg-emerald-500/20' : (isUnknown ? 'bg-muted/50' : 'bg-red-500/20')}`}>
-                    {isOnline ? (
-                        <CheckCircle2 className={`h-5 w-5 ${textClass}`} />
-                    ) : (
-                        <XCircle className={`h-5 w-5 ${textClass}`} />
+                <div className="relative shrink-0">
+                    {!isUnknown && (
+                        <div className={`absolute inset-0 rounded-full ${config.pulse} animate-ping opacity-20`} />
                     )}
+                    <div className={`relative p-2.5 rounded-full ${config.bg}`}>
+                        <Icon className={`h-6 w-6 ${config.color}`} />
+                    </div>
                 </div>
-                <div>
-                    <p className="font-semibold text-sm tracking-wide">{name.replace('_Com_Status', '')}</p>
-                    <p className="text-xs text-muted-foreground">Tình trạng kết nối</p>
+                <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                        <h3 className={`text-base font-bold ${config.color} truncate`} title={deviceName}>
+                            {deviceName}
+                        </h3>
+                        {!isUnknown && (
+                            <span className={`inline-block shrink-0 h-2 w-2 rounded-full ${config.pulse} ${isOnline ? 'animate-pulse' : ''}`} />
+                        )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5 truncate" title={config.desc}>{config.desc}</p>
                 </div>
-            </div>
-            <div className="flex items-center gap-2">
-                <span className={`text-sm font-bold ${textClass}`}>{label}</span>
-                {!isUnknown && (
-                    <span className={`inline-block h-2 w-2 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-red-500'} ${isOnline ? 'animate-pulse' : ''}`} />
-                )}
             </div>
         </div>
     );
