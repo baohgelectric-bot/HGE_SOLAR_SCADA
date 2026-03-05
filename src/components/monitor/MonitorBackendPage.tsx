@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import {
     Cpu,
     HardDrive,
@@ -342,8 +342,10 @@ function EventRow({ event }: { event: BackendEvent }) {
 
 /* ─── Main Component ─── */
 export default function MonitorBackendPage() {
+    const varNames = useMemo(() => [...SYS_VARS, ...COM_STATUS_VARS], []);
+
     const { data: realtimeData, connection } = useRealtimeData({
-        varNames: [...SYS_VARS, ...COM_STATUS_VARS],
+        varNames,
     });
 
     const [events, setEvents] = useState<BackendEvent[]>([]);
