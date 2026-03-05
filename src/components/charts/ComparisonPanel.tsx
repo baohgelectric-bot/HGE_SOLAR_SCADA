@@ -229,11 +229,11 @@ export function ComparisonPanel({ className }: ComparisonPanelProps) {
     return (
         <div className={className}>
             {/* Header with navigation */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
                 <h2 className="text-xl font-bold border-l-4 border-primary pl-3">
                     Thống Kê Theo {FILTER_LABELS[filterType]} — So sánh 6 khu vực
                 </h2>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                     {/* Back button */}
                     <button
                         onClick={handleBack}
