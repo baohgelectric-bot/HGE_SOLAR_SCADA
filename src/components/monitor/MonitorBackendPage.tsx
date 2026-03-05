@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
     Cpu,
     HardDrive,
@@ -14,6 +14,9 @@ import {
     Activity,
     Wifi,
     WifiOff,
+    Zap,
+    Cpu as CpuIcon,
+    GaugeCircle
 } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { Header } from '@/components/layout/Header';
@@ -31,6 +34,14 @@ interface BackendEvent {
 
 /* ─── Constants ─── */
 const SYS_VARS = ['sys_ram', 'sys_disk_free', 'sys_uptime_seconds'];
+
+const COM_STATUS_VARS = [
+    'DM1_Com_Status', 'DM2_Com_Status', 'DM3_Com_Status',
+    'INVT1_1_Com_Status', 'INVT1_2_Com_Status', 'INVT2_1_Com_Status', 'INVT2_2_Com_Status',
+    'INVT3_1_Com_Status', 'INVT3_2_Com_Status', 'INVT3_3_Com_Status', 'INVT3_4_Com_Status',
+    'METER1_2_Com_Status', 'METER2_2_Com_Status', 'METER3_2_Com_Status'
+];
+
 const EVENTS_REFETCH_MS = 30_000; // 30 seconds
 
 /* ─── Helpers ─── */
@@ -229,6 +240,42 @@ function StatusBadge({ status }: { status: BackendStatus }) {
     );
 }
 
+/* ─── DeviceStatusCard ─── */
+function DeviceStatusCard({ name, statusValue }: { name: string; statusValue: number | null }) {
+    const isOnline = statusValue === 1.0;
+    const isUnknown = statusValue === null || statusValue === undefined;
+
+    const bgClass = isOnline ? 'bg-emerald-500/10 border-emerald-500/20' : (isUnknown ? 'bg-muted/30 border-border/50' : 'bg-red-500/10 border-red-500/30');
+    const textClass = isOnline ? 'text-emerald-500' : (isUnknown ? 'text-muted-foreground' : 'text-red-500');
+    const Icon = isOnline ? CheckCircle2 : (isUnknown ? Wifi : XCircle);
+    const label = isOnline ? 'Online' : (isUnknown ? 'N/A' : 'Offline');
+
+    return (
+        <div className={`rounded-xl border p-4 flex items-center justify-between ${bgClass} transition-colors`}>
+            <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-full ${isOnline ? 'bg-emerald-500/20' : (isUnknown ? 'bg-muted/50' : 'bg-red-500/20')}`}>
+                    {isOnline ? (
+                        <CheckCircle2 className={`h-5 w-5 ${textClass}`} />
+                    ) : (
+                        <XCircle className={`h-5 w-5 ${textClass}`} />
+                    )}
+                </div>
+                <div>
+                    <p className="font-semibold text-sm tracking-wide">{name.replace('_Com_Status', '')}</p>
+                    <p className="text-xs text-muted-foreground">Tình trạng kết nối</p>
+                </div>
+            </div>
+            <div className="flex items-center gap-2">
+                <span className={`text-sm font-bold ${textClass}`}>{label}</span>
+                {!isUnknown && (
+                    <span className={`inline-block h-2 w-2 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-red-500'} ${isOnline ? 'animate-pulse' : ''}`} />
+                )}
+            </div>
+        </div>
+    );
+}
+
+
 /* ─── EventRow ─── */
 function EventRow({ event }: { event: BackendEvent }) {
     const timeStr = new Date(event.recorded_at).toLocaleString('vi-VN', {
@@ -267,7 +314,7 @@ function EventRow({ event }: { event: BackendEvent }) {
 /* ─── Main Component ─── */
 export default function MonitorBackendPage() {
     const { data: realtimeData, connection } = useRealtimeData({
-        varNames: SYS_VARS,
+        varNames: [...SYS_VARS, ...COM_STATUS_VARS],
     });
 
     const [events, setEvents] = useState<BackendEvent[]>([]);
@@ -312,6 +359,11 @@ export default function MonitorBackendPage() {
     const sysDiskFree = realtimeData.get('sys_disk_free')?.value ?? null;
     const sysUptime = realtimeData.get('sys_uptime_seconds')?.value ?? null;
 
+    // Filter statuses by group
+    const inverterVars = COM_STATUS_VARS.filter(v => v.startsWith('INVT'));
+    const dmVars = COM_STATUS_VARS.filter(v => v.startsWith('DM'));
+    const meterVars = COM_STATUS_VARS.filter(v => v.startsWith('METER'));
+
     return (
         <div className="flex flex-col min-h-screen">
             <Header connection={connection} />
@@ -348,38 +400,98 @@ export default function MonitorBackendPage() {
                         </div>
                     </div>
 
-                    {/* System Metrics */}
-                    <div>
-                        <div className="flex items-center gap-2 mb-4">
-                            <Server className="h-5 w-5 text-muted-foreground" />
-                            <h2 className="text-lg font-bold">Tài nguyên hệ thống</h2>
+                    {/* Device Status Grid */}
+                    <div className="space-y-6 mt-8">
+                        {/* DM Group */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-4">
+                                <CpuIcon className="h-5 w-5 text-muted-foreground" />
+                                <h2 className="text-lg font-bold">Data Manager (DM)</h2>
+                                <span className="ml-2 text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{dmVars.length} thiết bị</span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                {dmVars.map(varName => (
+                                    <DeviceStatusCard
+                                        key={varName}
+                                        name={varName}
+                                        statusValue={realtimeData.get(varName)?.value ?? null}
+                                    />
+                                ))}
+                            </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <MetricCard varName="sys_ram" value={sysRam} />
-                            <MetricCard varName="sys_disk_free" value={sysDiskFree} />
+
+                        {/* Inverter Group */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-4">
+                                <Zap className="h-5 w-5 text-muted-foreground" />
+                                <h2 className="text-lg font-bold">Inverter (Biến Tần)</h2>
+                                <span className="ml-2 text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{inverterVars.length} thiết bị</span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                {inverterVars.map(varName => (
+                                    <DeviceStatusCard
+                                        key={varName}
+                                        name={varName}
+                                        statusValue={realtimeData.get(varName)?.value ?? null}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Meter Group */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-4">
+                                <GaugeCircle className="h-5 w-5 text-muted-foreground" />
+                                <h2 className="text-lg font-bold">Energy Meter (Đồng Hồ)</h2>
+                                <span className="ml-2 text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{meterVars.length} thiết bị</span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                {meterVars.map(varName => (
+                                    <DeviceStatusCard
+                                        key={varName}
+                                        name={varName}
+                                        statusValue={realtimeData.get(varName)?.value ?? null}
+                                    />
+                                ))}
+                            </div>
                         </div>
                     </div>
 
-                    {/* Event Log from Database */}
-                    <div className="rounded-xl border border-border bg-card overflow-hidden">
-                        <div className="flex items-center gap-2 px-5 py-4 border-b border-border">
-                            <ScrollText className="h-5 w-5 text-muted-foreground" />
-                            <h2 className="text-lg font-bold">Lịch sử sự kiện</h2>
-                            <span className="ml-auto text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                                {events.length} sự kiện
-                            </span>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+                        {/* System Metrics */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-4">
+                                <Server className="h-5 w-5 text-muted-foreground" />
+                                <h2 className="text-lg font-bold">Tài nguyên hệ thống</h2>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <MetricCard varName="sys_ram" value={sysRam} />
+                                <MetricCard varName="sys_disk_free" value={sysDiskFree} />
+                            </div>
                         </div>
-                        <div className="max-h-[400px] overflow-y-auto divide-y divide-border/50">
-                            {events.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                                    <Activity className="h-8 w-8 mb-2 opacity-30" />
-                                    <p className="text-sm">Chưa có sự kiện nào</p>
-                                </div>
-                            ) : (
-                                events.map(event => (
-                                    <EventRow key={event.id} event={event} />
-                                ))
-                            )}
+
+                        {/* Event Log from Database */}
+                        <div className="rounded-xl border border-border bg-card overflow-hidden flex flex-col h-full max-h-[400px]">
+                            <div className="flex items-center gap-2 px-5 py-4 border-b border-border shrink-0">
+                                <ScrollText className="h-5 w-5 text-muted-foreground" />
+                                <h2 className="text-lg font-bold">Lịch sử sự kiện</h2>
+                                <span className="ml-auto text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                                    {events.length} sự kiện
+                                </span>
+                            </div>
+                            <div className="overflow-y-auto divide-y divide-border/50 flex-1 p-2">
+                                {events.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground h-full">
+                                        <Activity className="h-8 w-8 mb-2 opacity-30" />
+                                        <p className="text-sm">Chưa có sự kiện nào</p>
+                                    </div>
+                                ) : (
+                                    events.map(event => (
+                                        <EventRow key={event.id} event={event} />
+                                    ))
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
