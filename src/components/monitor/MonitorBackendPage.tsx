@@ -487,21 +487,21 @@ export default function MonitorBackendPage() {
                     </div>
 
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+                    <div className="flex flex-col gap-6 pt-4">
                         {/* System Metrics */}
                         <div>
                             <div className="flex items-center gap-2 mb-4">
                                 <Server className="h-5 w-5 text-muted-foreground" />
                                 <h2 className="text-lg font-bold">Tài nguyên hệ thống</h2>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <MetricCard varName="sys_ram" value={sysRam} />
                                 <MetricCard varName="sys_disk_free" value={sysDiskFree} />
                             </div>
                         </div>
 
                         {/* Event Log from Database */}
-                        <div className="rounded-xl border border-border bg-card overflow-hidden flex flex-col h-full max-h-[400px]">
+                        <div className="rounded-xl border border-border bg-card overflow-hidden flex flex-col max-h-[400px]">
                             <div className="flex items-center gap-2 px-5 py-4 border-b border-border shrink-0">
                                 <ScrollText className="h-5 w-5 text-muted-foreground" />
                                 <h2 className="text-lg font-bold">Lịch sử sự kiện</h2>
@@ -509,7 +509,7 @@ export default function MonitorBackendPage() {
                                     {events.length} sự kiện
                                 </span>
                             </div>
-                            <div className="overflow-y-auto divide-y divide-border/50 flex-1 p-2">
+                            <div className="overflow-y-auto divide-y divide-border/50 flex-1 p-2 min-h-[200px]">
                                 {events.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center py-12 text-muted-foreground h-full">
                                         <Activity className="h-8 w-8 mb-2 opacity-30" />
