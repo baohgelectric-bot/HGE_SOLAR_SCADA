@@ -23,8 +23,7 @@ export default function ComparePage() {
                     </p>
                 </div>
 
-                {/* Keep Time Filter only for Comparison Panel if user wants it, or remove it and show all 5? User just said "so sánh đưa ra một trang riêng" and "Mỗi trang hiển thị cả 5 biểu đồ". We can just show the existing TimeFilter for Comparison, or build 5 Comparison Panels? Let's just keep TimeFilter but default compareMode to true, or update comparison panel later. Wait, spec says "phần so sánh đưa ra trang riêng". Let's show the standard ComparisonPanel component. */}
-                <TimeFilter />
+                <TimeFilter hideCompare />
 
                 <ComparisonPanel />
             </main>
