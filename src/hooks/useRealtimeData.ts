@@ -37,15 +37,34 @@ export function useRealtimeData({
         if (varNames.length === 0) return;
         try {
             const supabase = getSupabaseBrowserClient();
-            const { data: rows, error } = await supabase
-                .from('realtime_states')
-                .select('*')
-                .in('var_name', varNames);
 
-            if (error) throw error;
+            // To prevent 414 URI Too Long errors with many variables
+            // we split the varNames into chunks of 10
+            const chunkSize = 10;
+            const chunks: string[][] = [];
+            for (let i = 0; i < varNames.length; i += chunkSize) {
+                chunks.push(varNames.slice(i, i + chunkSize));
+            }
+
+            const results = await Promise.all(
+                chunks.map(chunk =>
+                    supabase
+                        .from('realtime_states')
+                        .select('*')
+                        .in('var_name', chunk)
+                )
+            );
+
+            // Check for errors in any chunk
+            for (const { error } of results) {
+                if (error) throw error;
+            }
+
+            // Flatten data from all chunks
+            const allRows = results.flatMap(r => r.data || []);
 
             const newMap = new Map<string, RealtimeState & { isStaleComputed: boolean }>();
-            (rows as RealtimeState[])?.forEach((row) => {
+            (allRows as RealtimeState[]).forEach((row) => {
                 newMap.set(row.var_name, {
                     ...row,
                     isStaleComputed: isStale(row.source_ts, row.updated_at),
