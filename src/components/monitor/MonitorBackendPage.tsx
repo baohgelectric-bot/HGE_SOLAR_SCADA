@@ -275,7 +275,26 @@ function DeviceStatusCard({ name, statusValue }: { name: string; statusValue: nu
     };
 
     const Icon = config.icon;
-    const deviceName = name.replace('_Com_Status', '');
+
+    // Tự định nghĩa một từ điển các tên gọi
+    const DEVICE_NAMES: Record<string, string> = {
+        'DM1_Com_Status': 'Datamanager 1',
+        'DM2_Com_Status': 'Datamanager 2',
+        'DM3_Com_Status': 'Datamanager 3',
+        'INVT1_1_Com_Status': 'INVERTER 1',
+        'INVT1_2_Com_Status': 'INVERTER 2',
+        'INVT2_1_Com_Status': 'INVERTER 3',
+        'INVT2_2_Com_Status': 'INVERTER 4',
+        'INVT3_1_Com_Status': 'INVERTER 5',
+        'INVT3_2_Com_Status': 'INVERTER 6',
+        'INVT3_3_Com_Status': 'INVERTER 7',
+        'INVT3_4_Com_Status': 'INVERTER 8',
+        'METER1_2_Com_Status': 'Meter MSB1',
+        'METER2_2_Com_Status': 'Meter MSB2',
+        'METER3_2_Com_Status': 'Meter MSB3',
+    };
+
+    const deviceName = DEVICE_NAMES[name] || name.replace('_Com_Status', '');
 
     return (
         <div className={`rounded-xl border ${config.border} ${config.bg} p-4 ring-1 ${config.ring} transition-all duration-500`}>
