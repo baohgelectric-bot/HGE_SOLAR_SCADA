@@ -199,7 +199,7 @@ export function ComparisonPanel({ className }: ComparisonPanelProps) {
     const { from, to } = getDateRange(filterType, localDate);
 
     const { data, isLoading, isError, error, refetch } = useQuery({
-        queryKey: ['comparison-data', filterType, reportType, from, to],
+        queryKey: ['comparison-data', 'v2', filterType, reportType, from, to],
         queryFn: async () => {
             const raw = await fetchBillingReportsMultiScope(
                 COMPARISON_SCOPES.map((s) => s),
