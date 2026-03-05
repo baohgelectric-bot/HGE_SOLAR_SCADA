@@ -4,6 +4,12 @@ title HGESolarSCADA - Deploy to Vercel
 color 0F
 
 cd /d "d:\02-CONG VIEC HUNG GIANG\2025-HUNG GIANG\THANG 12\solar dashboard\code\frontend"
+if %errorlevel% neq 0 (
+    echo.
+    echo  [LOI] Khong the chuyen den thu muc project!
+    echo  Kiem tra lai duong dan thu muc.
+    goto :END
+)
 
 echo.
 echo  ============================================
@@ -11,15 +17,25 @@ echo   HGESolarSCADA - Auto Deploy to Vercel
 echo  ============================================
 echo.
 
-:: Kiem tra co thay doi gi khong
-git status --short > "%TEMP%\git_status.tmp" 2>&1
-set /p CHANGES=<"%TEMP%\git_status.tmp"
-if "%CHANGES%"=="" (
-    echo  [!] Khong co thay doi nao de deploy.
-    echo.
-    echo  Nhan phim bat ky de dong cua so nay...
-    pause >nul
-    exit /b 0
+:: Kiem tra git co san trong PATH khong
+where git >nul 2>&1
+if %errorlevel% neq 0 (
+    echo  [LOI] Khong tim thay git trong PATH!
+    echo  Hay cai dat Git hoac them git vao PATH.
+    goto :END
+)
+
+:: Kiem tra co thay doi gi khong (dung errorlevel thay vi doc file tam)
+git diff --quiet HEAD 2>nul
+set HAS_COMMITTED_CHANGES=%errorlevel%
+git status --porcelain 2>nul | findstr /r /c:"." >nul 2>&1
+set HAS_UNCOMMITTED=%errorlevel%
+
+if %HAS_UNCOMMITTED% neq 0 (
+    if %HAS_COMMITTED_CHANGES% equ 0 (
+        echo  [!] Khong co thay doi nao de deploy.
+        goto :END
+    )
 )
 
 echo  Cac file da thay doi:
@@ -34,9 +50,7 @@ git add -A
 if %errorlevel% neq 0 (
     echo.
     echo  [LOI] Stage that bai!
-    echo  Nhan phim bat ky de dong...
-    pause >nul
-    exit /b 1
+    goto :END
 )
 echo  OK!
 echo.
@@ -48,9 +62,7 @@ git commit -m "%COMMIT_MSG%"
 if %errorlevel% neq 0 (
     echo.
     echo  [LOI] Commit that bai!
-    echo  Nhan phim bat ky de dong...
-    pause >nul
-    exit /b 1
+    goto :END
 )
 echo.
 
@@ -63,10 +75,7 @@ if %errorlevel% neq 0 (
     echo   LOI! Push that bai.
     echo   Kiem tra ket noi mang hoac xac thuc GitHub.
     echo  ============================================
-    echo.
-    echo  Nhan phim bat ky de dong...
-    pause >nul
-    exit /b 1
+    goto :END
 )
 
 echo.
@@ -74,6 +83,8 @@ echo  ============================================
 echo   THANH CONG! Da push len GitHub.
 echo   Vercel se tu dong build trong 1-2 phut.
 echo  ============================================
+
+:END
 echo.
 echo  Nhan phim bat ky de dong cua so nay...
 pause >nul
