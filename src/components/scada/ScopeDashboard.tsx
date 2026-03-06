@@ -12,6 +12,10 @@ import {
     SCOPE_CUMULATIVE_YIELD_VAR,
     SCOPE_CUMULATIVE_REVENUE_VAR,
     SCOPE_TOTAL_YIELD_VAR,
+    SCOPE_HOURLY_YIELD_VAR,
+    SCOPE_HOURLY_REVENUE_VAR,
+    SCOPE_MONTHLY_YIELD_VAR,
+    SCOPE_MONTHLY_REVENUE_VAR,
     SCOPE_METER_W_IN,
     SCOPE_METER_W_OUT,
     SCOPE_KW_LOAD,
@@ -47,8 +51,12 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
         () => [
             ...inverterVars,
             powerVar,
+            SCOPE_HOURLY_YIELD_VAR[scope],
+            SCOPE_HOURLY_REVENUE_VAR[scope],
             SCOPE_DAILY_YIELD_VAR[scope],
             SCOPE_DAILY_REVENUE_VAR[scope],
+            SCOPE_MONTHLY_YIELD_VAR[scope],
+            SCOPE_MONTHLY_REVENUE_VAR[scope],
             SCOPE_CUMULATIVE_YIELD_VAR[scope],
             SCOPE_CUMULATIVE_REVENUE_VAR[scope],
             SCOPE_TOTAL_YIELD_VAR[scope],
@@ -68,8 +76,12 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
     const currentPower = powerState?.value ?? null;
 
     // Realtime KPIs
+    const hourlyYield = realtimeData.get(SCOPE_HOURLY_YIELD_VAR[scope])?.value ?? null;
+    const hourlyRevenue = realtimeData.get(SCOPE_HOURLY_REVENUE_VAR[scope])?.value ?? null;
     const dailyYield = realtimeData.get(SCOPE_DAILY_YIELD_VAR[scope])?.value ?? null;
     const dailyRevenue = realtimeData.get(SCOPE_DAILY_REVENUE_VAR[scope])?.value ?? null;
+    const monthlyYield = realtimeData.get(SCOPE_MONTHLY_YIELD_VAR[scope])?.value ?? null;
+    const monthlyRevenue = realtimeData.get(SCOPE_MONTHLY_REVENUE_VAR[scope])?.value ?? null;
     const totalYield = realtimeData.get(SCOPE_CUMULATIVE_YIELD_VAR[scope])?.value ?? null;
     const totalRevenue = realtimeData.get(SCOPE_CUMULATIVE_REVENUE_VAR[scope])?.value ?? null;
     const lifetimeYield = realtimeData.get(SCOPE_TOTAL_YIELD_VAR[scope])?.value ?? null;
@@ -226,9 +238,31 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
                                 loading={isKpiLoading}
                             />
                         </div>
+                    </div>
 
-                        {/* Row 3: Production and Revenue */}
+                    {/* Power Profile LineChart */}
+                    <PowerLineChart scope={scope} />
+
+                    {/* Doanh thu và Sản lượng */}
+                    <div>
+                        <h2 className="text-lg font-bold mb-3">
+                            Doanh thu và Sản lượng
+                        </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <KpiCard
+                                label="Sản lượng giờ"
+                                value={formatEnergy(hourlyYield)}
+                                unit="kWh"
+                                icon={BarChart3}
+                                loading={isKpiLoading}
+                            />
+                            <KpiCard
+                                label="Doanh thu giờ"
+                                value={formatRevenueKVND(hourlyRevenue)}
+                                unit="KVNĐ"
+                                icon={DollarSign}
+                                loading={isKpiLoading}
+                            />
                             <KpiCard
                                 label="Sản lượng ngày"
                                 value={formatEnergy(dailyYield)}
@@ -239,6 +273,20 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
                             <KpiCard
                                 label="Doanh thu ngày"
                                 value={formatRevenueKVND(dailyRevenue)}
+                                unit="KVNĐ"
+                                icon={DollarSign}
+                                loading={isKpiLoading}
+                            />
+                            <KpiCard
+                                label="Sản lượng tháng"
+                                value={formatEnergy(monthlyYield)}
+                                unit="kWh"
+                                icon={BarChart3}
+                                loading={isKpiLoading}
+                            />
+                            <KpiCard
+                                label="Doanh thu tháng"
+                                value={formatRevenueKVND(monthlyRevenue)}
                                 unit="KVNĐ"
                                 icon={DollarSign}
                                 loading={isKpiLoading}
@@ -259,9 +307,6 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
                             />
                         </div>
                     </div>
-
-                    {/* Power Profile LineChart */}
-                    <PowerLineChart scope={scope} />
 
                     {/* Realtime Inverter Cards */}
                     {inverterVars.length > 0 && (

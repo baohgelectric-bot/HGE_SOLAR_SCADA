@@ -415,3 +415,51 @@ export const SCOPE_CUMULATIVE_REVENUE_VAR: Record<Scope, string> = {
   [Scope.DM2]: 'DM2_Total_Yield_Revenue_Yearly',
   [Scope.DM3]: 'DM3_Total_Yield_Revenue_Yearly',
 };
+
+/**
+ * Biến sản lượng giờ realtime.
+ */
+export const SCOPE_HOURLY_YIELD_VAR: Record<Scope, string> = {
+  [Scope.TOTAL]: 'TOTAL_Hourly_Yield',
+  [Scope.TOTAL_A]: 'TOTAL_A_Hourly_Yield',
+  [Scope.TOTAL_B]: 'TOTAL_B_Hourly_Yield',
+  [Scope.DM1]: 'DM1_Total_Yield_Hourly_Yield',
+  [Scope.DM2]: 'DM2_Total_Yield_Hourly_Yield',
+  [Scope.DM3]: 'DM3_Total_Yield_Hourly_Yield',
+};
+
+/**
+ * Biến doanh thu giờ realtime.
+ */
+export const SCOPE_HOURLY_REVENUE_VAR: Record<Scope, string> = {
+  [Scope.TOTAL]: 'TOTAL_Revenue_Hourly',
+  [Scope.TOTAL_A]: 'TOTAL_A_Revenue_Hourly',
+  [Scope.TOTAL_B]: 'TOTAL_B_Revenue_Hourly',
+  [Scope.DM1]: 'DM1_Total_Yield_Revenue_Hourly',
+  [Scope.DM2]: 'DM2_Total_Yield_Revenue_Hourly',
+  [Scope.DM3]: 'DM3_Total_Yield_Revenue_Hourly',
+};
+
+/**
+ * Biến sản lượng tháng realtime.
+ */
+export const SCOPE_MONTHLY_YIELD_VAR: Record<Scope, string> = {
+  [Scope.TOTAL]: 'TOTAL_Monthly_Yield',
+  [Scope.TOTAL_A]: 'TOTAL_A_Monthly_Yield',
+  [Scope.TOTAL_B]: 'TOTAL_B_Monthly_Yield',
+  [Scope.DM1]: 'DM1_Total_Yield_Monthly_Yield',
+  [Scope.DM2]: 'DM2_Total_Yield_Monthly_Yield',
+  [Scope.DM3]: 'DM3_Total_Yield_Monthly_Yield',
+};
+
+/**
+ * Biến doanh thu tháng realtime.
+ */
+export const SCOPE_MONTHLY_REVENUE_VAR: Record<Scope, string> = {
+  [Scope.TOTAL]: 'TOTAL_Revenue_Monthly',
+  [Scope.TOTAL_A]: 'TOTAL_A_Revenue_Monthly',
+  [Scope.TOTAL_B]: 'TOTAL_B_Revenue_Monthly',
+  [Scope.DM1]: 'DM1_Total_Yield_Revenue_Monthly',
+  [Scope.DM2]: 'DM2_Total_Yield_Revenue_Monthly',
+  [Scope.DM3]: 'DM3_Total_Yield_Revenue_Monthly',
+};
