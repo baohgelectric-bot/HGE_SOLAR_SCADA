@@ -375,9 +375,9 @@ export const SCOPE_DAILY_YIELD_VAR: Record<Scope, string> = {
   [Scope.TOTAL]: 'TOTAL_Daily_Yield',
   [Scope.TOTAL_A]: 'TOTAL_A_Daily_Yield',
   [Scope.TOTAL_B]: 'TOTAL_B_Daily_Yield',
-  [Scope.DM1]: 'METER1_1_Daily_Yield',
-  [Scope.DM2]: 'METER2_1_Daily_Yield',
-  [Scope.DM3]: 'METER3_1_Daily_Yield',
+  [Scope.DM1]: 'DM1_Total_Yield_Daily_Yield',
+  [Scope.DM2]: 'DM2_Total_Yield_Daily_Yield',
+  [Scope.DM3]: 'DM3_Total_Yield_Daily_Yield',
 };
 
 /**

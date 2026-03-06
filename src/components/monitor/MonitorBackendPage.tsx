@@ -245,10 +245,30 @@ function DeviceStatusCard({ name, statusValue }: { name: string; statusValue: nu
     const isOnline = statusValue === 1.0;
     const isUnknown = statusValue === null || statusValue === undefined;
 
+    // Xác định nội dung thông báo online riêng biệt cho từng nhóm để dễ tuỳ chỉnh sau này
+    let onlineDesc = 'Đang kết nối bình thường';
+    if (name.startsWith('DM')) {
+        onlineDesc = 'Có kết nối từ DM tới IOT2050';
+    } else if (name.startsWith('INVT')) {
+        onlineDesc = 'Có kết nối từ Inverter tới bộ DM';
+    } else if (name.startsWith('METER')) {
+        onlineDesc = 'Có kết nối từ Energy Meter tới bộ DM';
+    }
+
+    // Xác định nội dung thông báo offline riêng biệt cho từng nhóm
+    let offlineDesc = 'Mất kết nối thiết bị!';
+    if (name.startsWith('DM')) {
+        offlineDesc = 'Mất kết nối từ DM tới IOT2050';
+    } else if (name.startsWith('INVT')) {
+        offlineDesc = 'Mất kết nối từ Inverter tới bộ DM';
+    } else if (name.startsWith('METER')) {
+        offlineDesc = 'Mất kết nối từ Energy Meter tới bộ DM';
+    }
+
     const config = isOnline ? {
         icon: CheckCircle2,
         label: 'Online',
-        desc: 'Đang kết nối bình thường',
+        desc: onlineDesc,
         color: 'text-emerald-500',
         bg: 'bg-emerald-500/10',
         border: 'border-emerald-500/20',
@@ -266,7 +286,7 @@ function DeviceStatusCard({ name, statusValue }: { name: string; statusValue: nu
     } : {
         icon: XCircle,
         label: 'Offline',
-        desc: 'Mất kết nối thiết bị!',
+        desc: offlineDesc,
         color: 'text-red-500',
         bg: 'bg-red-500/10',
         border: 'border-red-500/20',
