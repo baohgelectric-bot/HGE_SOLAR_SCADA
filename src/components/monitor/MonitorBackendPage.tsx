@@ -32,6 +32,14 @@ interface BackendEvent {
     recorded_at: string;
 }
 
+interface DeviceEvent {
+    id: number;
+    device_name: string;
+    event_type: 'online' | 'offline';
+    message: string;
+    recorded_at: string;
+}
+
 /* ─── Constants ─── */
 const SYS_VARS = ['sys_ram', 'sys_disk_free', 'sys_uptime_seconds'];
 
@@ -379,6 +387,59 @@ function EventRow({ event }: { event: BackendEvent }) {
     );
 }
 
+/* ─── DeviceEventRow ─── */
+function DeviceEventRow({ event }: { event: DeviceEvent }) {
+    const timeStr = new Date(event.recorded_at).toLocaleString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+    });
+
+    const typeConfig = {
+        online: { color: 'text-emerald-400', bg: 'bg-emerald-500/10', icon: Wifi, label: 'ONLINE' },
+        offline: { color: 'text-red-400', bg: 'bg-red-500/10', icon: WifiOff, label: 'OFFLINE' },
+    }[event.event_type];
+
+    const Icon = typeConfig.icon;
+
+    const DEVICE_NAMES: Record<string, string> = {
+        'DM1_Com_Status': 'Datamanager 1',
+        'DM2_Com_Status': 'Datamanager 2',
+        'DM3_Com_Status': 'Datamanager 3',
+        'INVT1_1_Com_Status': 'INVERTER 1',
+        'INVT1_2_Com_Status': 'INVERTER 2',
+        'INVT2_1_Com_Status': 'INVERTER 3',
+        'INVT2_2_Com_Status': 'INVERTER 4',
+        'INVT3_1_Com_Status': 'INVERTER 5',
+        'INVT3_2_Com_Status': 'INVERTER 6',
+        'INVT3_3_Com_Status': 'INVERTER 7',
+        'INVT3_4_Com_Status': 'INVERTER 8',
+        'METER1_2_Com_Status': 'Meter MSB1',
+        'METER2_2_Com_Status': 'Meter MSB2',
+        'METER3_2_Com_Status': 'Meter MSB3',
+    };
+    const deviceName = DEVICE_NAMES[event.device_name] || event.device_name.replace('_Com_Status', '');
+
+    return (
+        <div className="flex items-start gap-3 px-4 py-2.5 rounded-lg hover:bg-muted/50 transition-colors group">
+            <div className={`mt-0.5 p-1 rounded ${typeConfig.bg}`}>
+                <Icon className={`h-3.5 w-3.5 ${typeConfig.color}`} />
+            </div>
+            <div className="flex-1 min-w-0">
+                <p className="text-sm leading-snug font-medium">{deviceName}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{event.message}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{timeStr}</p>
+            </div>
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${typeConfig.bg} ${typeConfig.color} opacity-60 group-hover:opacity-100 transition-opacity`}>
+                {typeConfig.label}
+            </span>
+        </div>
+    );
+}
+
 /* ─── Main Component ─── */
 export default function MonitorBackendPage() {
     const varNames = useMemo(() => [...SYS_VARS, ...COM_STATUS_VARS], []);
@@ -388,32 +449,48 @@ export default function MonitorBackendPage() {
     });
 
     const [events, setEvents] = useState<BackendEvent[]>([]);
+    const [deviceEvents, setDeviceEvents] = useState<DeviceEvent[]>([]);
     const [backendStatus, setBackendStatus] = useState<BackendStatus>('online');
 
-    // Fetch events from backend_events table
+    // Fetch events from backend_events and device_events tables
     const fetchEvents = useCallback(async () => {
         try {
             const supabase = getSupabaseBrowserClient();
-            const { data, error } = await supabase
+
+            // Fetch backend events
+            const { data: backendData, error: backendError } = await supabase
                 .from('backend_events')
                 .select('*')
                 .order('recorded_at', { ascending: false })
                 .limit(20);
 
-            if (error) {
-                console.error('Failed to fetch backend events:', error);
-                return;
+            if (backendError) {
+                console.error('Failed to fetch backend events:', backendError);
+            } else {
+                const rows = (backendData ?? []) as BackendEvent[];
+                setEvents(rows);
+
+                // Derive current status from the latest event
+                if (rows.length > 0) {
+                    setBackendStatus(rows[0].event_type);
+                }
             }
 
-            const rows = (data ?? []) as BackendEvent[];
-            setEvents(rows);
+            // Fetch device events
+            const { data: deviceData, error: deviceError } = await supabase
+                .from('device_events')
+                .select('*')
+                .order('recorded_at', { ascending: false })
+                .limit(30);
 
-            // Derive current status from the latest event
-            if (rows.length > 0) {
-                setBackendStatus(rows[0].event_type);
+            if (deviceError) {
+                console.error('Failed to fetch device events:', deviceError);
+            } else {
+                setDeviceEvents((deviceData ?? []) as DeviceEvent[]);
             }
+
         } catch (err) {
-            console.error('Failed to fetch backend events:', err);
+            console.error('Failed to fetch events:', err);
         }
     }, []);
 
@@ -542,25 +619,51 @@ export default function MonitorBackendPage() {
                         </div>
 
                         {/* Event Log from Database */}
-                        <div className="rounded-xl border border-border bg-card overflow-hidden flex flex-col max-h-[400px]">
-                            <div className="flex items-center gap-2 px-5 py-4 border-b border-border shrink-0">
-                                <ScrollText className="h-5 w-5 text-muted-foreground" />
-                                <h2 className="text-lg font-bold">Lịch sử sự kiện</h2>
-                                <span className="ml-auto text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                                    {events.length} sự kiện
-                                </span>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* IOT2050 History */}
+                            <div className="rounded-xl border border-border bg-card overflow-hidden flex flex-col max-h-[400px]">
+                                <div className="flex items-center gap-2 px-5 py-4 border-b border-border shrink-0">
+                                    <ScrollText className="h-5 w-5 text-muted-foreground" />
+                                    <h2 className="text-lg font-bold">Lịch sử sự kiện IOT2050</h2>
+                                    <span className="ml-auto text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                                        {events.length} sự kiện
+                                    </span>
+                                </div>
+                                <div className="overflow-y-auto divide-y divide-border/50 flex-1 p-2 min-h-[200px]">
+                                    {events.length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground h-full">
+                                            <Activity className="h-8 w-8 mb-2 opacity-30" />
+                                            <p className="text-sm">Chưa có sự kiện nào</p>
+                                        </div>
+                                    ) : (
+                                        events.map(event => (
+                                            <EventRow key={event.id} event={event} />
+                                        ))
+                                    )}
+                                </div>
                             </div>
-                            <div className="overflow-y-auto divide-y divide-border/50 flex-1 p-2 min-h-[200px]">
-                                {events.length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground h-full">
-                                        <Activity className="h-8 w-8 mb-2 opacity-30" />
-                                        <p className="text-sm">Chưa có sự kiện nào</p>
-                                    </div>
-                                ) : (
-                                    events.map(event => (
-                                        <EventRow key={event.id} event={event} />
-                                    ))
-                                )}
+
+                            {/* Device History */}
+                            <div className="rounded-xl border border-border bg-card overflow-hidden flex flex-col max-h-[400px]">
+                                <div className="flex items-center gap-2 px-5 py-4 border-b border-border shrink-0">
+                                    <Activity className="h-5 w-5 text-muted-foreground" />
+                                    <h2 className="text-lg font-bold">Lịch sử sự kiện các thiết bị</h2>
+                                    <span className="ml-auto text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                                        {deviceEvents.length} sự kiện
+                                    </span>
+                                </div>
+                                <div className="overflow-y-auto divide-y divide-border/50 flex-1 p-2 min-h-[200px]">
+                                    {deviceEvents.length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground h-full">
+                                            <Activity className="h-8 w-8 mb-2 opacity-30" />
+                                            <p className="text-sm">Chưa có sự kiện nào</p>
+                                        </div>
+                                    ) : (
+                                        deviceEvents.map(event => (
+                                            <DeviceEventRow key={event.id} event={event} />
+                                        ))
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
