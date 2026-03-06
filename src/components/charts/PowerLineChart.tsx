@@ -53,7 +53,18 @@ async function fetchPowerProfile(varName: string): Promise<PowerPoint[]> {
     }));
 
     // Limit to last MAX_POINTS
-    return points.slice(-MAX_POINTS);
+    const result = points.slice(-MAX_POINTS);
+
+    // Pad to exactly MAX_POINTS so the chart has fixed 14 points along the X axis.
+    // We use unique strings (spaces) for the empty time labels so Recharts treats them as distinct points.
+    while (result.length < MAX_POINTS) {
+        result.push({
+            time: ' '.repeat(result.length + 1),
+            value: null as unknown as number
+        });
+    }
+
+    return result;
 }
 
 /* ─── Hook ─── */
@@ -82,7 +93,7 @@ function useIsMobile(breakpoint = 640) {
 
 /* ─── Custom Tooltip ─── */
 function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) {
-    if (!active || !payload?.length) return null;
+    if (!active || !payload?.length || payload[0].value == null) return null;
     return (
         <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-xl">
             <p className="text-xs text-muted-foreground mb-1">{label}</p>
@@ -92,6 +103,24 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
         </div>
     );
 }
+
+/* ─── Custom Label ─── */
+const CustomizedLabel = (props: any) => {
+    const { x, y, value } = props;
+    if (value == null) return null;
+    return (
+        <text
+            x={x}
+            y={y}
+            dy={-10}
+            fill="currentColor"
+            textAnchor="middle"
+            className="text-[10px] sm:text-xs font-semibold text-foreground dark:text-gray-200 text-gray-800"
+        >
+            {Number(value).toLocaleString('vi-VN', { maximumFractionDigits: 1 })}
+        </text>
+    );
+};
 
 /* ─── Main Component ─── */
 interface PowerLineChartProps {
@@ -111,7 +140,7 @@ export function PowerLineChart({ scope }: PowerLineChartProps) {
         return `${h}:00 – ${hNext}:00`;
     }, []);
 
-    const hasData = points && points.length > 0;
+    const hasData = points && points.some(p => p.value != null);
 
     return (
         <div className="rounded-xl border border-border bg-card p-4 overflow-hidden">
@@ -146,34 +175,36 @@ export function PowerLineChart({ scope }: PowerLineChartProps) {
                     <p className="text-sm">Chưa có dữ liệu trong giờ này</p>
                 </div>
             ) : (
-                <ResponsiveContainer width="100%" height={200}>
+                <ResponsiveContainer width="100%" height={200} className="text-muted-foreground">
                     <LineChart
                         data={points}
                         margin={{
-                            top: 5,
-                            right: isMobile ? 5 : 15,
-                            left: isMobile ? -15 : 0,
+                            top: 25,
+                            right: isMobile ? 10 : 20,
+                            left: isMobile ? 0 : 10,
                             bottom: 5,
                         }}
                     >
                         <CartesianGrid
                             strokeDasharray="3 3"
-                            stroke="hsl(var(--border))"
+                            stroke="currentColor"
+                            className="text-border"
                             opacity={0.5}
                         />
                         <XAxis
                             dataKey="time"
-                            tick={{ fontSize: isMobile ? 10 : 12, fill: 'hsl(var(--muted-foreground))' }}
+                            tick={{ fontSize: isMobile ? 10 : 12, fill: 'currentColor' }}
                             tickLine={false}
                             axisLine={false}
+                            padding={{ left: 20, right: 20 }}
                         />
                         <YAxis
-                            tick={{ fontSize: isMobile ? 10 : 12, fill: 'hsl(var(--muted-foreground))' }}
+                            tick={{ fontSize: isMobile ? 10 : 12, fill: 'currentColor' }}
                             tickLine={false}
                             axisLine={false}
-                            width={isMobile ? 35 : 50}
+                            width={isMobile ? 45 : 60}
                             domain={[0, Math.ceil(capacity * 1.1)]}
-                            tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`}
+                            tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k kW` : `${v} kW`}
                         />
                         <Tooltip content={<CustomTooltip />} />
                         <Line
@@ -184,6 +215,7 @@ export function PowerLineChart({ scope }: PowerLineChartProps) {
                             dot={{ r: 3, fill: '#3b82f6', strokeWidth: 0 }}
                             activeDot={{ r: 5, fill: '#3b82f6', stroke: '#fff', strokeWidth: 2 }}
                             animationDuration={500}
+                            label={<CustomizedLabel />}
                         />
                     </LineChart>
                 </ResponsiveContainer>
