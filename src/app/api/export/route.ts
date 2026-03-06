@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { format } from 'date-fns';
+
 import { getScopeLabel, toDbScope } from '@/config/constants';
 
 const VALID_REPORT_TYPES = ['ALL', 'HOURLY', 'DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'];
@@ -89,7 +89,10 @@ export async function GET(request: NextRequest) {
     const lines: string[] = [headers.join(',')];
 
     for (const row of allRows) {
-        const rowTime = format(new Date(row.logical_ts), 'yyyy-MM-dd HH:mm:ss');
+        // Convert to VN Time (UTC+7)
+        const dateObj = new Date(row.logical_ts);
+        const vnTime = new Date(dateObj.getTime() + 7 * 60 * 60 * 1000);
+        const rowTime = vnTime.toISOString().replace('T', ' ').substring(0, 19);
         const rowScope = getScopeLabel(row.scope);
 
         lines.push([
