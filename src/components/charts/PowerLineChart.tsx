@@ -182,7 +182,7 @@ export function PowerLineChart({ scope }: PowerLineChartProps) {
                         margin={{
                             top: 25,
                             right: isMobile ? 10 : 20,
-                            left: isMobile ? 0 : 10,
+                            left: isMobile ? -15 : 10,
                             bottom: 5,
                         }}
                     >
@@ -203,7 +203,7 @@ export function PowerLineChart({ scope }: PowerLineChartProps) {
                             tick={{ fontSize: isMobile ? 10 : 12, fill: 'currentColor' }}
                             tickLine={false}
                             axisLine={false}
-                            width={isMobile ? 45 : 60}
+                            width={isMobile ? 35 : 60}
                             domain={[0, Math.ceil(capacity * 1.1)]}
                             tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`}
                         />
