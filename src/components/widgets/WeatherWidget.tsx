@@ -8,6 +8,11 @@ interface WeatherData {
     humidity: number;
     weatherCode: number;
     description: string;
+    forecast?: {
+        temperature: number;
+        weatherCode: number;
+        description: string;
+    };
 }
 
 // Open-Meteo Weather Codes
@@ -45,7 +50,7 @@ export function WeatherWidget() {
             try {
                 // Tọa độ trạm: 11.014556, 106.694337
                 const res = await fetch(
-                    'https://api.open-meteo.com/v1/forecast?latitude=11.014556&longitude=106.694337&current=temperature_2m,relative_humidity_2m,weather_code&timezone=Asia%2FHo_Chi_Minh'
+                    'https://api.open-meteo.com/v1/forecast?latitude=11.014556&longitude=106.694337&current=temperature_2m,relative_humidity_2m,weather_code&hourly=temperature_2m,weather_code&timezone=Asia%2FHo_Chi_Minh&forecast_hours=2'
                 );
 
                 if (!res.ok) throw new Error('Failed to fetch weather');
@@ -53,12 +58,25 @@ export function WeatherWidget() {
                 const data = await res.json();
 
                 if (mounted && data.current) {
-                    const details = getWeatherDetails(data.current.weather_code);
+                    const currentDetails = getWeatherDetails(data.current.weather_code);
+
+                    let forecast = undefined;
+                    if (data.hourly && data.hourly.temperature_2m.length > 1) {
+                        const forecastCode = data.hourly.weather_code[1];
+                        const forecastDetails = getWeatherDetails(forecastCode);
+                        forecast = {
+                            temperature: data.hourly.temperature_2m[1],
+                            weatherCode: forecastCode,
+                            description: forecastDetails.desc,
+                        };
+                    }
+
                     setWeather({
                         temperature: data.current.temperature_2m,
                         humidity: data.current.relative_humidity_2m,
                         weatherCode: data.current.weather_code,
-                        description: details.desc,
+                        description: currentDetails.desc,
+                        forecast: forecast,
                     });
                     setLoading(false);
                 }
@@ -94,12 +112,12 @@ export function WeatherWidget() {
     const { icon: WeatherIcon, color } = getWeatherDetails(weather.weatherCode);
 
     return (
-        <div className="rounded-xl border border-border bg-card px-4 py-2 flex items-center gap-4 h-[72px] hover:border-border/80 transition-colors shadow-sm lg:h-[88px] lg:px-6 lg:gap-6">
-            <div className={`p-2 rounded-full bg-muted/50 ${color} lg:p-3`}>
+        <div className="rounded-xl border border-border bg-card px-4 py-2 flex items-center gap-4 h-[72px] hover:border-border/80 transition-colors shadow-sm lg:h-[88px] lg:px-6 lg:gap-6 min-w-fit">
+            <div className={`p-2 rounded-full bg-muted/50 flex-shrink-0 ${color} lg:p-3`}>
                 <WeatherIcon className="h-6 w-6 lg:h-8 lg:w-8" />
             </div>
 
-            <div className="flex flex-col justify-center">
+            <div className="flex flex-col justify-center min-w-[200px]">
                 <div className="flex items-baseline gap-2">
                     <span className="text-xl font-bold tracking-tight lg:text-3xl">
                         {Math.round(weather.temperature)}°C
@@ -114,17 +132,35 @@ export function WeatherWidget() {
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3 text-sky-400 lg:h-4 lg:w-4">
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
                         </svg>
-                        KCN Đại Đăng, Bình Dương
+                        KCN Đại Đăng
                     </span>
                     <span className="w-1 h-1 rounded-full bg-border" />
                     <span className="flex items-center gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3 text-blue-400 lg:h-4 lg:w-4">
                             <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />
                         </svg>
-                        Độ ẩm: {Math.round(weather.humidity)}%
+                        {Math.round(weather.humidity)}%
                     </span>
                 </div>
             </div>
+
+            {weather.forecast && (
+                <div className="flex items-center gap-3 pl-4 border-l border-border/50 ml-2 hidden sm:flex">
+                    <div className="flex flex-col items-center justify-center">
+                        <span className="text-[14px] uppercase font-semibold text-muted-foreground mb-1 tracking-wider">Trong 1 giờ tới</span>
+                        <div className="flex items-center gap-2">
+                            {(() => {
+                                const { icon: ForecastIcon, color: forecastColor } = getWeatherDetails(weather.forecast.weatherCode);
+                                return <ForecastIcon className={`h-4 w-4 ${forecastColor}`} />;
+                            })()}
+                            <span className="text-sm font-bold">{Math.round(weather.forecast.temperature)}°C</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground truncate max-w-[80px]" title={weather.forecast.description}>
+                            {weather.forecast.description}
+                        </span>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
