@@ -181,6 +181,14 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
                                     icon={DollarSign}
                                     loading={isKpiLoading}
                                     className="w-full"
+                                    valueSuffix={
+                                        <span className="ml-[10px] text-sm lg:text-base font-bold text-green-500 whitespace-nowrap">
+                                            {currentPrice === 5528 ? 'Giờ Cao Điểm' :
+                                                currentPrice === 1770 ? 'Giờ Thấp Điểm' :
+                                                    currentPrice === 3176 ? 'Giờ Bình Thường' :
+                                                        'Chưa xác định'}
+                                        </span>
+                                    }
                                 />
                                 {/* Row 2, Col 2 */}
                                 <div className="rounded-xl border border-border bg-card p-4 w-full overflow-hidden">

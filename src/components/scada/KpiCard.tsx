@@ -1,3 +1,4 @@
+import React from 'react';
 import { cn } from '@/lib/utils';
 import { TrendingUp, TrendingDown, Minus, type LucideIcon } from 'lucide-react';
 
@@ -9,6 +10,7 @@ interface KpiCardProps {
     trend?: 'up' | 'down' | 'flat';
     loading?: boolean;
     className?: string;
+    valueSuffix?: React.ReactNode;
 }
 
 export function KpiCard({
@@ -19,6 +21,7 @@ export function KpiCard({
     trend,
     loading = false,
     className,
+    valueSuffix,
 }: KpiCardProps) {
     if (loading) {
         return (
@@ -63,6 +66,7 @@ export function KpiCard({
             <div className="flex items-baseline gap-1 sm:gap-2 mt-2 flex-wrap min-w-0">
                 <span className="text-lg sm:text-2xl font-bold tracking-tight break-all">{value}</span>
                 <span className="text-base sm:text-xl font-semibold text-primary">{unit}</span>
+                {valueSuffix}
             </div>
             {trend && (
                 <div className={cn('flex items-center gap-1 mt-2', trendColor)}>
