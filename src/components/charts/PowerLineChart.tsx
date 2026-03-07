@@ -116,7 +116,7 @@ const CustomizedLabel = (props: any) => {
             dy={-10}
             fill="currentColor"
             textAnchor="middle"
-            className="text-[10px] sm:text-xs font-semibold text-foreground dark:text-gray-200 text-gray-800"
+            className="text-[10px] sm:text-xs font-semibold text-foreground"
         >
             {Number(value).toLocaleString('vi-VN', { maximumFractionDigits: 1 })}
         </text>
