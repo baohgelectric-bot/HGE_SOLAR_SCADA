@@ -155,7 +155,7 @@ export function WeatherWidget() {
                             })()}
                             <span className="text-sm font-bold">{Math.round(weather.forecast.temperature)}°C</span>
                         </div>
-                        <span className="text-xs text-muted-foreground truncate max-w-[80px]" title={weather.forecast.description}>
+                        <span className="text-xs font-bold text-muted-foreground truncate max-w-[80px]" title={weather.forecast.description}>
                             {weather.forecast.description}
                         </span>
                     </div>
