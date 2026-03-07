@@ -33,6 +33,7 @@ import { ChartRow } from '@/components/scada/ChartRow';
 import { PowerLineChart } from '@/components/charts/PowerLineChart';
 import { PieChartWidget } from '@/components/charts/PieChartWidget';
 import { Header } from '@/components/layout/Header';
+import { WeatherWidget } from '@/components/widgets/WeatherWidget';
 
 interface ScopeDashboardProps {
     scope: Scope;
@@ -125,13 +126,16 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
             <main className="flex-1 p-4 lg:p-6 overflow-auto">
                 <div className="max-w-[1600px] mx-auto w-full space-y-6">
                     {/* Page Title */}
-                    <div>
-                        <h1 className="text-2xl font-bold">
-                            {SCOPE_LABELS[scope]}
-                        </h1>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            Giám sát và phân tích sản lượng điện mặt trời
-                        </p>
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                        <div>
+                            <h1 className="text-2xl font-bold">
+                                {SCOPE_LABELS[scope]}
+                            </h1>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                Giám sát và phân tích sản lượng điện mặt trời
+                            </p>
+                        </div>
+                        <WeatherWidget />
                     </div>
 
                     {/* KPI Cards (5 metrics + Capacity Pie Chart) */}

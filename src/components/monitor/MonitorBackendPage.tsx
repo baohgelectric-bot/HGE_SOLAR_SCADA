@@ -21,6 +21,7 @@ import {
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { Header } from '@/components/layout/Header';
 import { useRealtimeData } from '@/hooks/useRealtimeData';
+import { WeatherWidget } from '@/components/widgets/WeatherWidget';
 
 /* ─── Types ─── */
 type BackendStatus = 'online' | 'offline' | 'restarted';
@@ -519,11 +520,14 @@ export default function MonitorBackendPage() {
             <main className="flex-1 p-4 lg:p-6 overflow-auto">
                 <div className="max-w-[1600px] mx-auto w-full space-y-6">
                     {/* Title */}
-                    <div>
-                        <h1 className="text-2xl font-bold">Monitor Backend</h1>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            Giám sát tình trạng hệ thống IOT2050 Advance đang vận hành backend
-                        </p>
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                        <div>
+                            <h1 className="text-2xl font-bold">Monitor Backend</h1>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                Giám sát tình trạng hệ thống IOT2050 Advance đang vận hành backend
+                            </p>
+                        </div>
+                        <WeatherWidget />
                     </div>
 
                     {/* Backend Status + Uptime */}

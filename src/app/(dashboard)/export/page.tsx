@@ -6,6 +6,7 @@ import { Scope, SCOPE_LABELS } from '@/config/constants';
 import { Header } from '@/components/layout/Header';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { ALLOWED_ACCOUNTS, hashPassword } from '@/config/auth';
+import { WeatherWidget } from '@/components/widgets/WeatherWidget';
 
 const REPORT_TYPE_OPTIONS = [
     { value: 'ALL', label: 'Tất cả' },
@@ -145,16 +146,19 @@ export default function ExportPage() {
             <Header connection={{ status: 0 } as any} />
             <main className="flex-1 p-4 lg:p-6 overflow-auto">
                 <div className="max-w-[700px] mx-auto w-full space-y-8 pt-8">
-                    <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4">
-                            <FileSpreadsheet className="h-8 w-8 text-primary" />
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
+                        <div>
+                            <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4">
+                                <FileSpreadsheet className="h-8 w-8 text-primary" />
+                            </div>
+                            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                                Xuất dữ liệu hệ thống
+                            </h1>
+                            <p className="text-muted-foreground mt-2 max-w-lg">
+                                Tùy chọn trạm, loại báo cáo và khoảng thời gian để tải về báo cáo tổng hợp dạng tệp CSV, phục vụ tính toán và phân tích trên Microsoft Excel.
+                            </p>
                         </div>
-                        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-                            Xuất dữ liệu hệ thống
-                        </h1>
-                        <p className="text-muted-foreground mt-2 max-w-lg mx-auto">
-                            Tùy chọn trạm, loại báo cáo và khoảng thời gian để tải về báo cáo tổng hợp dạng tệp CSV, phục vụ tính toán và phân tích trên Microsoft Excel.
-                        </p>
+                        <WeatherWidget />
                     </div>
 
                     <div className="bg-card border border-border/50 rounded-2xl p-6 shadow-sm">

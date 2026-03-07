@@ -16,6 +16,7 @@ import { formatPower } from '@/lib/utils';
 import { PieChartWidget } from '@/components/charts/PieChartWidget';
 import { RealtimeCard } from '@/components/scada/RealtimeCard';
 import { Header } from '@/components/layout/Header';
+import { WeatherWidget } from '@/components/widgets/WeatherWidget';
 
 const OVERVIEW_SCOPES = [
     Scope.TOTAL,
@@ -80,11 +81,14 @@ export default function PlantOverviewPage() {
             <main className="flex-1 p-4 lg:p-6 overflow-auto">
                 <div className="max-w-[1600px] mx-auto w-full space-y-6">
                     {/* Title */}
-                    <div>
-                        <h1 className="text-2xl font-bold">Plant Overview</h1>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            Tổng quan công suất phát từ hệ SOLAR của các phân khu
-                        </p>
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                        <div>
+                            <h1 className="text-2xl font-bold">Plant Overview</h1>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                Tổng quan công suất phát từ hệ SOLAR của các phân khu
+                            </p>
+                        </div>
+                        <WeatherWidget />
                     </div>
 
                     {/* Contribution Pie Charts */}
