@@ -9,6 +9,7 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
+    Legend,
 } from 'recharts';
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -16,7 +17,7 @@ import { SCOPE_POWER_VAR, SCOPE_CAPACITY, type Scope } from '@/config/constants'
 import { Activity } from 'lucide-react';
 
 /* ─── Constants ─── */
-const MAX_POINTS = 14;
+const MAX_POINTS = 13;
 const REFETCH_INTERVAL_MS = 30_000; // 30 seconds
 
 /* ─── Types ─── */
@@ -204,12 +205,14 @@ export function PowerLineChart({ scope }: PowerLineChartProps) {
                             axisLine={false}
                             width={isMobile ? 45 : 60}
                             domain={[0, Math.ceil(capacity * 1.1)]}
-                            tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k kW` : `${v} kW`}
+                            tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`}
                         />
                         <Tooltip content={<CustomTooltip />} />
+                        <Legend wrapperStyle={{ fontSize: '12px' }} />
                         <Line
                             type="monotone"
                             dataKey="value"
+                            name="Công Suất (kW)"
                             stroke="#3b82f6"
                             strokeWidth={2.5}
                             dot={{ r: 3, fill: '#3b82f6', strokeWidth: 0 }}

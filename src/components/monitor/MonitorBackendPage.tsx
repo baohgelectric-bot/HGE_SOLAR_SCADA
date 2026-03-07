@@ -480,6 +480,7 @@ export default function MonitorBackendPage() {
             const { data: deviceData, error: deviceError } = await supabase
                 .from('device_events')
                 .select('*')
+                .in('device_name', COM_STATUS_VARS)
                 .order('recorded_at', { ascending: false })
                 .limit(30);
 
