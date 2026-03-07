@@ -70,8 +70,8 @@ export function WeatherWidget() {
 
         fetchWeather();
 
-        // Refresh every 30 minutes
-        const interval = setInterval(fetchWeather, 30 * 60 * 1000);
+        // Refresh every 5 minutes
+        const interval = setInterval(fetchWeather, 5 * 60 * 1000);
         return () => {
             mounted = false;
             clearInterval(interval);
