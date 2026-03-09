@@ -145,162 +145,173 @@ export default function ExportPage() {
         <div className="flex flex-col min-h-screen relative">
             <Header connection={{ status: 0 } as any} />
             <main className="flex-1 p-4 lg:p-6 overflow-auto">
-                <div className="max-w-[700px] mx-auto w-full space-y-8 pt-8">
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
+                <div className="max-w-[1600px] mx-auto w-full pt-4 space-y-6">
+                    {/* Header line - match other pages */}
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                         <div>
-                            <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4">
-                                <FileSpreadsheet className="h-8 w-8 text-primary" />
-                            </div>
-                            <h1 className="text-3xl font-bold tracking-tight text-foreground">
-                                Xuất dữ liệu hệ thống
+                            <h1 className="text-2xl font-bold">
+                                Xuất dữ liệu
                             </h1>
-                            <p className="text-muted-foreground mt-2 max-w-lg">
-                                Tùy chọn trạm, loại báo cáo và khoảng thời gian để tải về báo cáo tổng hợp dạng tệp CSV, phục vụ tính toán và phân tích trên Microsoft Excel.
+                            <p className="text-sm text-muted-foreground mt-1">
+                                Trích xuất báo cáo hệ thống
                             </p>
                         </div>
                         <WeatherWidget />
                     </div>
 
-                    <div className="bg-card border border-border/50 rounded-2xl p-6 shadow-sm">
-                        <div className="space-y-6">
-                            {/* Scope selector */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold flex items-center gap-2">
-                                    <Building2 className="h-4 w-4 text-muted-foreground" />
-                                    Chọn Trạm điện
-                                </label>
-                                <select
-                                    className={inputClass}
-                                    value={scope}
-                                    onChange={(e) => setScope(e.target.value)}
-                                >
-                                    {scopes.map(s => (
-                                        <option key={s.value} value={s.value}>{s.label}</option>
-                                    ))}
-                                </select>
-                            </div>
+                    {/* Centered Main Layout */}
+                    <div className="max-w-[700px] mx-auto w-full pt-8 flex flex-col items-center">
+                        <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-full mb-6">
+                            <FileSpreadsheet className="h-10 w-10 text-primary" />
+                        </div>
+                        <h2 className="text-3xl font-bold tracking-tight text-foreground text-center mb-3">
+                            Xuất dữ liệu hệ thống
+                        </h2>
+                        <p className="text-muted-foreground text-center max-w-[600px] mb-8">
+                            Tùy chọn trạm, loại báo cáo và khoảng thời gian để tải về báo cáo tổng hợp dạng tệp CSV, phục vụ tính toán và phân tích trên Microsoft Excel.
+                        </p>
 
-                            {/* Report Type selector */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold flex items-center gap-2">
-                                    <FileBarChart className="h-4 w-4 text-muted-foreground" />
-                                    Loại báo cáo
-                                </label>
-                                <select
-                                    className={inputClass}
-                                    value={reportType}
-                                    onChange={(e) => setReportType(e.target.value)}
-                                >
-                                    {REPORT_TYPE_OPTIONS.map(rt => (
-                                        <option key={rt.value} value={rt.value}>{rt.label}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* Date range pickers */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="w-full bg-card border border-border/50 rounded-2xl p-6 shadow-sm">
+                            <div className="space-y-6">
+                                {/* Scope selector */}
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold flex items-center gap-2">
-                                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                                        Từ ngày
+                                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                                        Chọn Trạm điện
                                     </label>
-                                    <input
-                                        type="date"
+                                    <select
                                         className={inputClass}
-                                        value={fromDate}
-                                        onChange={(e) => setFromDate(e.target.value)}
-                                        max={toDate}
-                                    />
+                                        value={scope}
+                                        onChange={(e) => setScope(e.target.value)}
+                                    >
+                                        {scopes.map(s => (
+                                            <option key={s.value} value={s.value}>{s.label}</option>
+                                        ))}
+                                    </select>
                                 </div>
+
+                                {/* Report Type selector */}
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold flex items-center gap-2">
-                                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                                        Đến ngày
+                                        <FileBarChart className="h-4 w-4 text-muted-foreground" />
+                                        Loại báo cáo
                                     </label>
-                                    <input
-                                        type="date"
+                                    <select
                                         className={inputClass}
-                                        value={toDate}
-                                        onChange={(e) => setToDate(e.target.value)}
-                                        min={fromDate}
-                                        max={new Date().toISOString().split('T')[0]}
-                                    />
+                                        value={reportType}
+                                        onChange={(e) => setReportType(e.target.value)}
+                                    >
+                                        {REPORT_TYPE_OPTIONS.map(rt => (
+                                            <option key={rt.value} value={rt.value}>{rt.label}</option>
+                                        ))}
+                                    </select>
                                 </div>
-                            </div>
 
-                            {/* Validation Error */}
-                            {hasError && fromDate && toDate && fromDate > toDate && (
-                                <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium">
-                                    Ngày kết thúc phải sau ngày bắt đầu
-                                </div>
-                            )}
-
-                            {/* ── Authentication fields ────────────────────────── */}
-                            <div className="border-t border-border/50 pt-6 space-y-4">
-                                <p className="text-sm text-muted-foreground font-medium">
-                                    Nhập thông tin xác thực để tải xuống
-                                </p>
+                                {/* Date range pickers */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold flex items-center gap-2">
-                                            <User className="h-4 w-4 text-muted-foreground" />
-                                            Tên đăng nhập
+                                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                                            Từ ngày
                                         </label>
                                         <input
-                                            type="text"
+                                            type="date"
                                             className={inputClass}
-                                            placeholder="Nhập tên đăng nhập"
-                                            value={username}
-                                            onChange={(e) => {
-                                                setUsername(e.target.value);
-                                                setAuthMessage(null);
-                                            }}
+                                            value={fromDate}
+                                            onChange={(e) => setFromDate(e.target.value)}
+                                            max={toDate}
                                         />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold flex items-center gap-2">
-                                            <Lock className="h-4 w-4 text-muted-foreground" />
-                                            Mật khẩu
+                                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                                            Đến ngày
                                         </label>
                                         <input
-                                            type="password"
+                                            type="date"
                                             className={inputClass}
-                                            placeholder="Nhập mật khẩu"
-                                            value={password}
-                                            onChange={(e) => {
-                                                setPassword(e.target.value);
-                                                setAuthMessage(null);
-                                            }}
+                                            value={toDate}
+                                            onChange={(e) => setToDate(e.target.value)}
+                                            min={fromDate}
+                                            max={new Date().toISOString().split('T')[0]}
                                         />
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Auth message */}
-                            {authMessage && (
-                                <div
-                                    className={`p-3 rounded-md text-sm font-medium ${authMessage.type === 'error'
-                                        ? 'bg-destructive/10 border border-destructive/20 text-destructive'
-                                        : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                                        }`}
-                                >
-                                    {authMessage.text}
+                                {/* Validation Error */}
+                                {hasError && fromDate && toDate && fromDate > toDate && (
+                                    <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium">
+                                        Ngày kết thúc phải sau ngày bắt đầu
+                                    </div>
+                                )}
+
+                                {/* ── Authentication fields ────────────────────────── */}
+                                <div className="border-t border-border/50 pt-6 space-y-4">
+                                    <p className="text-sm text-muted-foreground font-medium">
+                                        Nhập thông tin xác thực để tải xuống
+                                    </p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold flex items-center gap-2">
+                                                <User className="h-4 w-4 text-muted-foreground" />
+                                                Tên đăng nhập
+                                            </label>
+                                            <input
+                                                type="text"
+                                                className={inputClass}
+                                                placeholder="Nhập tên đăng nhập"
+                                                value={username}
+                                                onChange={(e) => {
+                                                    setUsername(e.target.value);
+                                                    setAuthMessage(null);
+                                                }}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold flex items-center gap-2">
+                                                <Lock className="h-4 w-4 text-muted-foreground" />
+                                                Mật khẩu
+                                            </label>
+                                            <input
+                                                type="password"
+                                                className={inputClass}
+                                                placeholder="Nhập mật khẩu"
+                                                value={password}
+                                                onChange={(e) => {
+                                                    setPassword(e.target.value);
+                                                    setAuthMessage(null);
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
-                            )}
 
-                            {/* Download Button */}
-                            <div className="pt-2">
-                                <button
-                                    onClick={handleDownload}
-                                    disabled={isDownloading || hasError}
-                                    className={`w-full h-11 font-semibold flex items-center justify-center gap-2 rounded-md transition-colors ${isDownloading || hasError
-                                        ? 'bg-primary/50 text-primary-foreground cursor-not-allowed opacity-50'
-                                        : 'bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer'
-                                        }`}
-                                >
-                                    <Download className="h-5 w-5" />
-                                    {isDownloading ? 'Đang tải xuống...' : 'Tải xuống File CSV'}
-                                </button>
+                                {/* Auth message */}
+                                {authMessage && (
+                                    <div
+                                        className={`p-3 rounded-md text-sm font-medium ${authMessage.type === 'error'
+                                            ? 'bg-destructive/10 border border-destructive/20 text-destructive'
+                                            : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                                            }`}
+                                    >
+                                        {authMessage.text}
+                                    </div>
+                                )}
+
+                                {/* Download Button */}
+                                <div className="pt-2">
+                                    <button
+                                        onClick={handleDownload}
+                                        disabled={isDownloading || hasError}
+                                        className={`w-full h-11 font-semibold flex items-center justify-center gap-2 rounded-md transition-colors ${isDownloading || hasError
+                                            ? 'bg-primary/50 text-primary-foreground cursor-not-allowed opacity-50'
+                                            : 'bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer'
+                                            }`}
+                                    >
+                                        <Download className="h-5 w-5" />
+                                        {isDownloading ? 'Đang tải xuống...' : 'Tải xuống File CSV'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
