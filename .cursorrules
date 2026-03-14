@@ -4,3 +4,11 @@ Always respond and converse with the user in Vietnamese.
 
 # Hành động không được làm
 Không tự ý push code lên github, tôi sẽ thực hiện thủ công bằng tay.
+Không can thiệp thay đổi các hàm, các bảng, logic của supabase, trước khi có ý định hãy hỏi tôi kèm liệt kê chi tiết những thứ định làm.
+
+# Hành động luôn tuân thủ khi tôi không nói rõ yêu cầu
+Giao diện thiết kế luôn để ý tới hai chế độ Dark/Light.
+Luôn Responsive cho cả giao diện desktop và mobile.
+Luôn phù hợp cho việc chuyển đổi song ngữ Anh/Việt.
+Luôn có cấu trúc chia file thư mục phù hợp.
+Code linh hoạt, sạch sẽ, có tính kế thừa khi dùng lại ở nhiều trang.

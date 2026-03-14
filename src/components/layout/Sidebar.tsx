@@ -7,10 +7,24 @@ import { Sun, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { navItems } from '@/config/site';
 import { siteConfig } from '@/config/site';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export function Sidebar() {
     const pathname = usePathname();
+    const { t } = useTranslation();
     const [mobileOpen, setMobileOpen] = useState(false);
+
+    // Helper map for translation keys
+    const getTranslateKey = (title: string, scope?: string) => {
+        if (scope) return `sidebar.${scope.toLowerCase().replace('_', '')}` as any;
+        switch (title) {
+            case 'Plant Overview': return 'sidebar.overview';
+            case 'So sánh': return 'sidebar.compare';
+            case 'Xuất dữ liệu': return 'sidebar.export';
+            case 'Monitor Backend': return 'sidebar.monitor';
+            default: return 'sidebar.overview';
+        }
+    };
 
     return (
         <>
@@ -76,7 +90,7 @@ export function Sidebar() {
                                 )}
                             >
                                 <Icon className="h-4 w-4 flex-shrink-0" />
-                                <span>{item.title}</span>
+                                <span>{t(getTranslateKey(item.title, item.scope))}</span>
                             </Link>
                         );
                     })}
@@ -85,7 +99,9 @@ export function Sidebar() {
                 {/* Footer */}
                 <div className="p-4 border-t border-border">
                     <p className="text-xs text-muted-foreground text-center">
-                        HGESolarSCADA v1.0
+                        HGESolarSCADA v2.0
+                        <br />
+                        update 14/03/2026
                     </p>
                 </div>
             </aside>

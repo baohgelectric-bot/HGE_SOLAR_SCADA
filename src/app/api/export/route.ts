@@ -85,7 +85,27 @@ export async function GET(request: NextRequest) {
         YEARLY: 'Theo năm',
     };
 
-    const headers = ['Thời gian', 'Trạm', 'Sản lượng (kWh)', 'Doanh thu (KVNĐ)', 'Loại báo cáo'];
+    // We can accept locale from request, defaulting to 'vi'
+    const locale = searchParams.get('lang') === 'en' ? 'en' : 'vi';
+    const t = locale === 'en' ?
+        (key: string) => {
+            if (key === 'time') return 'Time';
+            if (key === 'plant') return 'Plant';
+            if (key === 'yield') return 'Yield (kWh)';
+            if (key === 'revenue') return 'Revenue (kVND)';
+            if (key === 'reportType') return 'Report Type';
+            return key;
+        } :
+        (key: string) => {
+            if (key === 'time') return 'Thời gian';
+            if (key === 'plant') return 'Trạm';
+            if (key === 'yield') return 'Sản lượng (kWh)';
+            if (key === 'revenue') return 'Doanh thu (KVNĐ)';
+            if (key === 'reportType') return 'Loại báo cáo';
+            return key;
+        };
+
+    const headers = [t('time'), t('plant'), t('yield'), t('revenue'), t('reportType')];
     const lines: string[] = [headers.join(',')];
 
     for (const row of allRows) {

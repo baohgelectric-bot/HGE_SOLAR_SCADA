@@ -2,16 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudRain, CloudSnow, Sun, Loader2 } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface WeatherData {
     temperature: number;
     humidity: number;
     weatherCode: number;
-    description: string;
     forecast?: {
         temperature: number;
         weatherCode: number;
-        description: string;
     };
 }
 
@@ -20,27 +19,28 @@ interface WeatherData {
 const getWeatherDetails = (code: number) => {
     switch (true) {
         case code === 0:
-            return { desc: 'Trời quang', icon: Sun, color: 'text-yellow-400' };
+            return { descKey: 'weather.clearSky', icon: Sun, color: 'text-yellow-400' };
         case [1, 2].includes(code):
-            return { desc: 'Ít mây', icon: Cloud, color: 'text-gray-300' };
+            return { descKey: 'weather.fewClouds', icon: Cloud, color: 'text-gray-300' };
         case code === 3:
-            return { desc: 'Nhiều mây', icon: Cloud, color: 'text-gray-400' };
+            return { descKey: 'weather.cloudy', icon: Cloud, color: 'text-gray-400' };
         case [45, 48].includes(code):
-            return { desc: 'Có sương mù', icon: CloudFog, color: 'text-gray-300' };
+            return { descKey: 'weather.fog', icon: CloudFog, color: 'text-gray-300' };
         case [51, 53, 55, 56, 57].includes(code):
-            return { desc: 'Mưa phùn', icon: CloudDrizzle, color: 'text-sky-300' };
+            return { descKey: 'weather.drizzle', icon: CloudDrizzle, color: 'text-sky-300' };
         case [61, 63, 65, 66, 67, 80, 81, 82].includes(code):
-            return { desc: 'Có mưa', icon: CloudRain, color: 'text-sky-400' };
+            return { descKey: 'weather.rain', icon: CloudRain, color: 'text-sky-400' };
         case [71, 73, 75, 77, 85, 86].includes(code):
-            return { desc: 'Có tuyết', icon: CloudSnow, color: 'text-white' };
+            return { descKey: 'weather.snow', icon: CloudSnow, color: 'text-white' };
         case [95, 96, 99].includes(code):
-            return { desc: 'Có giông bão', icon: CloudLightning, color: 'text-amber-400' };
+            return { descKey: 'weather.thunderstorm', icon: CloudLightning, color: 'text-amber-400' };
         default:
-            return { desc: 'N/A', icon: Cloud, color: 'text-gray-400' };
+            return { descKey: 'weather.na', icon: Cloud, color: 'text-gray-400' };
     }
 };
 
 export function WeatherWidget() {
+    const { t } = useTranslation();
     const [weather, setWeather] = useState<WeatherData | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -63,11 +63,9 @@ export function WeatherWidget() {
                     let forecast = undefined;
                     if (data.hourly && data.hourly.temperature_2m.length > 1) {
                         const forecastCode = data.hourly.weather_code[1];
-                        const forecastDetails = getWeatherDetails(forecastCode);
                         forecast = {
                             temperature: data.hourly.temperature_2m[1],
                             weatherCode: forecastCode,
-                            description: forecastDetails.desc,
                         };
                     }
 
@@ -75,7 +73,6 @@ export function WeatherWidget() {
                         temperature: data.current.temperature_2m,
                         humidity: data.current.relative_humidity_2m,
                         weatherCode: data.current.weather_code,
-                        description: currentDetails.desc,
                         forecast: forecast,
                     });
                     setLoading(false);
@@ -100,7 +97,7 @@ export function WeatherWidget() {
         return (
             <div className="rounded-xl border border-border bg-card p-3 flex items-center gap-3 h-[72px] min-w-[200px] justify-center text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin" />
-                <span className="text-sm font-medium">Đang tải thời tiết...</span>
+                <span className="text-sm font-medium">{t('weather.loading' as any)}</span>
             </div>
         );
     }
@@ -109,7 +106,7 @@ export function WeatherWidget() {
         return null;
     }
 
-    const { icon: WeatherIcon, color } = getWeatherDetails(weather.weatherCode);
+    const { icon: WeatherIcon, color, descKey } = getWeatherDetails(weather.weatherCode);
 
     return (
         <div className="rounded-xl border border-border bg-card px-4 py-2 flex items-center gap-4 h-[72px] hover:border-border/80 transition-colors shadow-sm lg:h-[88px] lg:px-6 lg:gap-6 min-w-fit">
@@ -123,7 +120,7 @@ export function WeatherWidget() {
                         {Math.round(weather.temperature)}°C
                     </span>
                     <span className="text-sm text-muted-foreground capitalize lg:text-base">
-                        {weather.description}
+                        {t(descKey as any)}
                     </span>
                 </div>
 
@@ -132,7 +129,7 @@ export function WeatherWidget() {
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3 text-sky-400 lg:h-4 lg:w-4">
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
                         </svg>
-                        KCN Đại Đăng - Bình Dương
+                        {t('weather.location' as any)}
                     </span>
                     <span className="w-1 h-1 rounded-full bg-border" />
                     <span className="flex items-center gap-1">
@@ -147,17 +144,22 @@ export function WeatherWidget() {
             {weather.forecast && (
                 <div className="flex items-center gap-3 pl-4 border-l border-border/50 ml-2 hidden sm:flex">
                     <div className="flex flex-col items-center justify-center">
-                        <span className="text-[14px] uppercase font-semibold text-muted-foreground mb-1 tracking-wider">Trong 1 giờ tới</span>
+                        <span className="text-[14px] uppercase font-semibold text-muted-foreground mb-1 tracking-wider">{t('weather.inOneHour' as any)}</span>
                         <div className="flex items-center gap-2">
                             {(() => {
-                                const { icon: ForecastIcon, color: forecastColor } = getWeatherDetails(weather.forecast.weatherCode);
-                                return <ForecastIcon className={`h-4 w-4 ${forecastColor}`} />;
+                                const { icon: ForecastIcon, color: forecastColor, descKey: forecastDescKey } = getWeatherDetails(weather.forecast.weatherCode);
+                                const fDesc = t(forecastDescKey as any);
+                                return (
+                                    <>
+                                        <ForecastIcon className={`h-4 w-4 ${forecastColor}`} />
+                                        <span className="text-sm font-bold">{Math.round(weather.forecast!.temperature)}°C</span>
+                                        <span className="text-xs font-bold text-muted-foreground truncate max-w-[80px]" title={fDesc}>
+                                            {fDesc}
+                                        </span>
+                                    </>
+                                );
                             })()}
-                            <span className="text-sm font-bold">{Math.round(weather.forecast.temperature)}°C</span>
                         </div>
-                        <span className="text-xs font-bold text-muted-foreground truncate max-w-[80px]" title={weather.forecast.description}>
-                            {weather.forecast.description}
-                        </span>
                     </div>
                 </div>
             )}

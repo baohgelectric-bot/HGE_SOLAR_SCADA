@@ -1,6 +1,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { TrendingUp, TrendingDown, Minus, type LucideIcon } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface KpiCardProps {
     label: string;
@@ -23,6 +24,8 @@ export function KpiCard({
     className,
     valueSuffix,
 }: KpiCardProps) {
+    const { t } = useTranslation();
+
     if (loading) {
         return (
             <div
@@ -72,7 +75,7 @@ export function KpiCard({
                 <div className={cn('flex items-center gap-1 mt-2', trendColor)}>
                     <TrendIcon className="h-3 w-3" />
                     <span className="text-xs font-medium">
-                        {trend === 'up' ? 'Tăng' : trend === 'down' ? 'Giảm' : 'Ổn định'}
+                        {trend === 'up' ? t('common.increase' as any) : trend === 'down' ? t('common.decrease' as any) : t('common.stable' as any)}
                     </span>
                 </div>
             )}

@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
-import { COMPARISON_SCOPES, SCOPE_LABELS, CHART_COLORS, FilterType, FILTER_TO_REPORT_TYPE, FILTER_LABELS } from '@/config/constants';
+import { COMPARISON_SCOPES, SCOPE_LABELS, CHART_COLORS, FilterType, FILTER_TO_REPORT_TYPE, FILTER_LABELS, Scope } from '@/config/constants';
 import { useFilterStore } from '@/store/useFilterStore';
 import { useQuery } from '@tanstack/react-query';
 import { fetchBillingReportsMultiScope } from '@/services/billing.service';
@@ -28,9 +28,11 @@ import {
     eachMonthOfInterval,
     subMilliseconds,
 } from 'date-fns';
-import { vi } from 'date-fns/locale';
+import { vi, enUS } from 'date-fns/locale';
 import type { ChartDataPoint } from '@/types/scada.types';
 import type { BillingReport } from '@/types/database.types';
+import { useTranslation } from '@/hooks/useTranslation';
+import { useLanguageStore } from '@/store/useLanguageStore';
 
 /* ── Date navigation helpers (same as ChartRow) ── */
 
@@ -68,20 +70,20 @@ function getStartOfPeriod(date: Date, filterType: FilterType): Date {
     }
 }
 
-function formatPeriodLabel(date: Date, filterType: FilterType): string {
+function formatPeriodLabel(date: Date, filterType: FilterType, locale: typeof vi | typeof enUS): string {
     switch (filterType) {
         case FilterType.DAY:
-            return format(date, 'dd/MM/yyyy', { locale: vi });
+            return format(date, 'dd/MM/yyyy', { locale });
         case FilterType.WEEK: {
             const weekStart = startOfWeek(date, { weekStartsOn: 1 });
             const weekEnd = addDays(weekStart, 6);
             return `${format(weekStart, 'dd/MM')} — ${format(weekEnd, 'dd/MM/yyyy')}`;
         }
         case FilterType.MONTH:
-            return format(date, 'MM/yyyy', { locale: vi });
+            return format(date, 'MM/yyyy', { locale });
         case FilterType.QUARTER: {
             const q = Math.floor(date.getMonth() / 3) + 1;
-            return `Quý ${q}/${date.getFullYear()}`;
+            return locale === vi ? `Quý ${q}/${date.getFullYear()}` : `Q${q}/${date.getFullYear()}`;
         }
         case FilterType.YEAR:
             return `${date.getFullYear()}`;
@@ -167,6 +169,8 @@ interface ComparisonPanelProps {
 export function ComparisonPanel({ className }: ComparisonPanelProps) {
     const { filterType } = useFilterStore();
     const [localDate, setLocalDate] = useState<Date>(new Date());
+    const { t } = useTranslation();
+    const { language } = useLanguageStore();
 
     // Navigation logic
     const isAtPresent = useMemo(() => {
@@ -231,17 +235,17 @@ export function ComparisonPanel({ className }: ComparisonPanelProps) {
             {/* Header with navigation */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
                 <h2 className="text-xl font-bold border-l-4 border-primary pl-3">
-                    Thống Kê Theo {FILTER_LABELS[filterType]} — So sánh 6 khu vực
+                    {t('charts.statsBy' as any)} {t(`filters.${filterType.toLowerCase()}` as any)} — {t('charts.compare6Areas' as any)}
                 </h2>
                 <div className="flex flex-wrap items-center gap-2">
                     {/* Back button */}
                     <button
                         onClick={handleBack}
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-sm font-medium transition-colors"
-                        title="Lùi"
+                        title={t('charts.back' as any)}
                     >
                         <ChevronLeft className="h-4 w-4" />
-                        <span className="hidden sm:inline">Lùi</span>
+                        <span className="hidden sm:inline">{t('charts.back' as any)}</span>
                     </button>
 
                     {/* Default / Reset button */}
@@ -249,10 +253,10 @@ export function ComparisonPanel({ className }: ComparisonPanelProps) {
                         onClick={handleReset}
                         disabled={isAtPresent}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                        title="Mặc định (hiện tại)"
+                        title={t('charts.default' as any)}
                     >
                         <RotateCcw className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">Mặc định</span>
+                        <span className="hidden sm:inline">{t('charts.defaultShort' as any)}</span>
                     </button>
 
                     {/* Forward button */}
@@ -260,15 +264,15 @@ export function ComparisonPanel({ className }: ComparisonPanelProps) {
                         onClick={handleForward}
                         disabled={isAtPresent}
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                        title="Tiến"
+                        title={t('charts.forward' as any)}
                     >
-                        <span className="hidden sm:inline">Tiến</span>
+                        <span className="hidden sm:inline">{t('charts.forward' as any)}</span>
                         <ChevronRight className="h-4 w-4" />
                     </button>
 
                     {/* Period label */}
                     <span className="ml-2 text-sm font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/20">
-                        {formatPeriodLabel(localDate, filterType)}
+                        {formatPeriodLabel(localDate, filterType, language === 'vi' ? vi : enUS)}
                     </span>
                 </div>
             </div>
@@ -284,7 +288,7 @@ export function ComparisonPanel({ className }: ComparisonPanelProps) {
                 </div>
             ) : isError ? (
                 <ErrorState
-                    message={error?.message || 'Lỗi tải dữ liệu so sánh'}
+                    message={error?.message || (t('charts.errorLoadingCompare' as any))}
                     onRetry={() => refetch()}
                 />
             ) : (
@@ -296,7 +300,12 @@ export function ComparisonPanel({ className }: ComparisonPanelProps) {
                         >
                             <BarChartWidget
                                 data={data?.[scope]}
-                                title={SCOPE_LABELS[scope]}
+                                title={
+                                    scope === Scope.TOTAL ? t('sidebar.total' as any) :
+                                        scope === Scope.TOTAL_A ? t('sidebar.totala' as any) :
+                                            scope === Scope.TOTAL_B ? t('sidebar.totalb' as any) :
+                                                t(`sidebar.${scope.toLowerCase()}` as any)
+                                }
                                 barColor={colors[index]}
                                 height={250}
                             />

@@ -6,7 +6,9 @@ import { Scope, FilterType, SCOPE_LABELS, FILTER_LABELS } from '@/config/constan
 import { useBillingReports } from '@/hooks/useBillingQueries';
 import { BarChartWidget } from '@/components/charts/BarChartWidget';
 import { format, addDays, addWeeks, addMonths, addQuarters, addYears, startOfDay, startOfWeek, startOfMonth, startOfQuarter, startOfYear, isAfter } from 'date-fns';
-import { vi } from 'date-fns/locale';
+import { vi, enUS } from 'date-fns/locale';
+import { useTranslation } from '@/hooks/useTranslation';
+import { useLanguageStore } from '@/store/useLanguageStore';
 
 interface ChartRowProps {
     scope: Scope;
@@ -56,20 +58,20 @@ function getStartOfPeriod(date: Date, filterType: FilterType): Date {
 /**
  * Format the currently displayed period for the label.
  */
-function formatPeriodLabel(date: Date, filterType: FilterType): string {
+function formatPeriodLabel(date: Date, filterType: FilterType, locale: typeof vi | typeof enUS): string {
     switch (filterType) {
         case FilterType.DAY:
-            return format(date, 'dd/MM/yyyy', { locale: vi });
+            return format(date, 'dd/MM/yyyy', { locale });
         case FilterType.WEEK: {
             const weekStart = startOfWeek(date, { weekStartsOn: 1 });
             const weekEnd = addDays(weekStart, 6);
             return `${format(weekStart, 'dd/MM')} — ${format(weekEnd, 'dd/MM/yyyy')}`;
         }
         case FilterType.MONTH:
-            return format(date, 'MM/yyyy', { locale: vi });
+            return format(date, 'MM/yyyy', { locale });
         case FilterType.QUARTER: {
             const q = Math.floor(date.getMonth() / 3) + 1;
-            return `Quý ${q}/${date.getFullYear()}`;
+            return locale === vi ? `Quý ${q}/${date.getFullYear()}` : `Q${q}/${date.getFullYear()}`;
         }
         case FilterType.YEAR:
             return `${date.getFullYear()}`;
@@ -80,6 +82,8 @@ function formatPeriodLabel(date: Date, filterType: FilterType): string {
 
 export function ChartRow({ scope, filterType }: ChartRowProps) {
     const [localDate, setLocalDate] = useState<Date>(new Date());
+    const { t } = useTranslation();
+    const { language } = useLanguageStore();
 
     // Is the current period already at "today"? If yes, disable Forward
     const isAtPresent = useMemo(() => {
@@ -120,17 +124,17 @@ export function ChartRow({ scope, filterType }: ChartRowProps) {
         <div className="space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-8 mb-4">
                 <h2 className="text-xl font-bold border-l-4 border-primary pl-3">
-                    Thống Kê Theo {FILTER_LABELS[filterType]}
+                    {t('charts.statsBy' as any)} {t(`filters.${filterType.toLowerCase()}` as any)}
                 </h2>
                 <div className="flex flex-wrap items-center gap-2">
                     {/* Back button */}
                     <button
                         onClick={handleBack}
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-sm font-medium transition-colors"
-                        title="Lùi"
+                        title={t('charts.back' as any)}
                     >
                         <ChevronLeft className="h-4 w-4" />
-                        <span className="hidden sm:inline">Lùi</span>
+                        <span className="hidden sm:inline">{t('charts.back' as any)}</span>
                     </button>
 
                     {/* Default / Reset button */}
@@ -138,10 +142,10 @@ export function ChartRow({ scope, filterType }: ChartRowProps) {
                         onClick={handleReset}
                         disabled={isAtPresent}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                        title="Mặc định (hiện tại)"
+                        title={t('charts.default' as any)}
                     >
                         <RotateCcw className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">Mặc định</span>
+                        <span className="hidden sm:inline">{t('charts.defaultShort' as any)}</span>
                     </button>
 
                     {/* Forward button */}
@@ -149,22 +153,25 @@ export function ChartRow({ scope, filterType }: ChartRowProps) {
                         onClick={handleForward}
                         disabled={isAtPresent}
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                        title="Tiến"
+                        title={t('charts.forward' as any)}
                     >
-                        <span className="hidden sm:inline">Tiến</span>
+                        <span className="hidden sm:inline">{t('charts.forward' as any)}</span>
                         <ChevronRight className="h-4 w-4" />
                     </button>
 
                     {/* Period label */}
                     <span className="ml-2 text-sm font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/20">
-                        {formatPeriodLabel(localDate, filterType)}
+                        {formatPeriodLabel(localDate, filterType, language === 'vi' ? vi : enUS)}
                     </span>
                 </div>
             </div>
             <div className="rounded-xl border border-border bg-card p-4">
                 <BarChartWidget
                     data={chartData}
-                    title={`Sản lượng ${SCOPE_LABELS[scope]}`}
+                    title={`${t('charts.yield' as any)} ${scope === Scope.TOTAL ? t('sidebar.total' as any) :
+                        scope === Scope.TOTAL_A ? t('sidebar.totala' as any) :
+                            scope === Scope.TOTAL_B ? t('sidebar.totalb' as any) :
+                                t(`sidebar.${scope.toLowerCase()}` as any)}`}
                     isLoading={chartLoading}
                     isError={chartError}
                     error={chartErr as Error}

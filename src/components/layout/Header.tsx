@@ -7,7 +7,9 @@ import { ConnectionStatus } from '@/config/constants';
 import { formatSystemTime } from '@/lib/utils';
 import type { RealtimeConnectionInfo } from '@/types/scada.types';
 import { formatDistanceToNow } from 'date-fns';
-import { vi } from 'date-fns/locale';
+import { vi, enUS } from 'date-fns/locale';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface HeaderProps {
     connection: RealtimeConnectionInfo;
@@ -15,6 +17,8 @@ interface HeaderProps {
 
 export function Header({ connection }: HeaderProps) {
     const { theme, setTheme } = useTheme();
+    const { language, setLanguage } = useLanguageStore();
+    const { t } = useTranslation();
     const [systemTime, setSystemTime] = useState<string>('');
     const [mounted, setMounted] = useState(false);
 
@@ -45,11 +49,11 @@ export function Header({ connection }: HeaderProps) {
     const getConnectionLabel = () => {
         switch (connection.status) {
             case ConnectionStatus.CONNECTED:
-                return 'Connected';
+                return t('header.connected' as any);
             case ConnectionStatus.RECONNECTING:
-                return 'Reconnecting...';
+                return t('header.reconnecting' as any);
             case ConnectionStatus.DISCONNECTED:
-                return 'Disconnected';
+                return t('header.disconnected' as any);
         }
     };
 
@@ -80,7 +84,8 @@ export function Header({ connection }: HeaderProps) {
                     <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-base font-medium text-foreground/80 bg-muted/50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-border">
                         <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
                         <span>
-                            Cập nhật lần cuối {formatDistanceToNow(connection.lastSyncTime, { addSuffix: true, locale: vi })}
+                            {t('header.lastUpdated' as any)} {' '}
+                            {formatDistanceToNow(connection.lastSyncTime, { addSuffix: true, locale: language === 'vi' ? vi : enUS })}
                         </span>
                     </div>
                 )}
@@ -90,11 +95,22 @@ export function Header({ connection }: HeaderProps) {
                     {systemTime}
                 </div>
 
+                {/* Language Toggle */}
+                {mounted && (
+                    <button
+                        onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
+                        className="px-2 rounded-lg hover:bg-muted transition-colors border border-border text-xs sm:text-sm font-semibold h-8 sm:h-9 flex items-center justify-center min-w-[36px]"
+                        aria-label="Toggle language"
+                    >
+                        {language.toUpperCase()}
+                    </button>
+                )}
+
                 {/* Theme Toggle */}
                 {mounted && (
                     <button
                         onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                        className="p-2 rounded-lg hover:bg-muted transition-colors border border-border"
+                        className="p-2 rounded-lg hover:bg-muted transition-colors border border-border h-8 sm:h-9 w-8 sm:w-9 flex items-center justify-center"
                         aria-label="Toggle theme"
                     >
                         {theme === 'dark' ? (

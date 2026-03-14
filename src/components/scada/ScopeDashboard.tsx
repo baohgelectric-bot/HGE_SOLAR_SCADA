@@ -34,12 +34,15 @@ import { PowerLineChart } from '@/components/charts/PowerLineChart';
 import { PieChartWidget } from '@/components/charts/PieChartWidget';
 import { Header } from '@/components/layout/Header';
 import { WeatherWidget } from '@/components/widgets/WeatherWidget';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface ScopeDashboardProps {
     scope: Scope;
 }
 
 export function ScopeDashboard({ scope }: ScopeDashboardProps) {
+    const { t } = useTranslation();
+
     // Get inverter var_names for this scope
     const inverterVars = useMemo(
         () => SCOPE_INVERTER_VARS[scope] || [],
@@ -87,9 +90,12 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
     const totalRevenue = realtimeData.get(SCOPE_CUMULATIVE_REVENUE_VAR[scope])?.value ?? null;
     const lifetimeYield = realtimeData.get(SCOPE_TOTAL_YIELD_VAR[scope])?.value ?? null;
     const currentPrice = realtimeData.get('Current_Price')?.value ?? null;
-    const gridWIn = realtimeData.get(SCOPE_METER_W_IN[scope])?.value ?? null;
-    const gridWOut = realtimeData.get(SCOPE_METER_W_OUT[scope])?.value ?? null;
-    const plantConsumption = realtimeData.get(SCOPE_KW_LOAD[scope])?.value ?? null;
+    const gridWInState = realtimeData.get(SCOPE_METER_W_IN[scope]);
+    const gridWIn = (!gridWInState || gridWInState.isStaleComputed) ? null : gridWInState.value;
+    const gridWOutState = realtimeData.get(SCOPE_METER_W_OUT[scope]);
+    const gridWOut = (!gridWOutState || gridWOutState.isStaleComputed) ? null : gridWOutState.value;
+    const plantConsumptionState = realtimeData.get(SCOPE_KW_LOAD[scope]);
+    const plantConsumption = (!plantConsumptionState || plantConsumptionState.isStaleComputed) ? null : plantConsumptionState.value;
 
     const isKpiLoading = connection.status === ConnectionStatus.DISCONNECTED && dailyYield === null;
 
@@ -129,10 +135,10 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                         <div>
                             <h1 className="text-2xl font-bold">
-                                {SCOPE_LABELS[scope]}
+                                {t(`dashboard.title_${scope.toLowerCase().replace('_', '')}` as any) || SCOPE_LABELS[scope]}
                             </h1>
                             <p className="text-sm text-muted-foreground mt-1">
-                                Giám sát và phân tích sản lượng điện mặt trời
+                                {t('dashboard.subtitle' as any)}
                             </p>
                         </div>
                         <WeatherWidget />
@@ -145,13 +151,13 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
                             <div className="lg:col-span-1 rounded-xl border border-border bg-card p-4">
                                 <PieChartWidget
                                     data={[
-                                        { scope: 'Đang phát (kW)', total_kwh: currentPower ?? 0 },
-                                        { scope: 'Dự phòng (kW)', total_kwh: Math.max(0, SCOPE_CAPACITY[scope] - (currentPower ?? 0)) }
+                                        { scope: t('dashboard.activePower' as any), total_kwh: (powerState?.isStaleComputed || currentPower == null) ? 0 : currentPower },
+                                        { scope: t('dashboard.reservePower' as any), total_kwh: Math.max(0, SCOPE_CAPACITY[scope] - ((powerState?.isStaleComputed || currentPower == null) ? 0 : currentPower)) }
                                     ]}
-                                    title="Công suất phát từ hệ SOLAR"
-                                    description={`Tổng công suất thiết kế: ${formatPower(SCOPE_CAPACITY[scope])} kW`}
+                                    title={t('dashboard.solarPowerTitle' as any)}
+                                    description={`${t('dashboard.totalDesignPower' as any)}: ${formatPower(SCOPE_CAPACITY[scope])} kW`}
                                     unit="kW"
-                                    valueLabel="Công suất"
+                                    valueLabel={t('dashboard.powerLabel' as any)}
                                     height={240}
                                     legendPosition="right"
                                     colors={['#3b82f6', '#6b7280']}
@@ -161,7 +167,7 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
                             <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {/* Row 1, Col 1 */}
                                 <KpiCard
-                                    label="Công suất hiện tại / Thiết kế"
+                                    label={t('dashboard.currentVsDesignPower' as any)}
                                     value={`${formatPower(currentPower)} / ${formatPower(SCOPE_CAPACITY[scope])}`}
                                     unit="kW"
                                     icon={Zap}
@@ -170,7 +176,7 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
                                 />
                                 {/* Row 1, Col 2 */}
                                 <KpiCard
-                                    label="Công suất từ ngày lắp đặt"
+                                    label={t('dashboard.lifetimeYield' as any)}
                                     value={formatEnergy(lifetimeYield != null ? lifetimeYield / 1000 : null)}
                                     unit="MWh"
                                     icon={BarChart3}
@@ -179,32 +185,32 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
                                 />
                                 {/* Row 2, Col 1 */}
                                 <KpiCard
-                                    label="Giá điện thời điểm hiện tại"
+                                    label={t('dashboard.currentPrice' as any)}
                                     value={formatCurrency(currentPrice)}
-                                    unit="VNĐ/KWH"
+                                    unit={t('dashboard.unitVndKwh' as any)}
                                     icon={DollarSign}
                                     loading={isKpiLoading}
                                     className="w-full"
                                     valueSuffix={
                                         <span className="ml-[10px] text-sm lg:text-base font-bold text-green-500 whitespace-nowrap">
-                                            {currentPrice === 5528 ? 'Giờ Cao Điểm' :
-                                                currentPrice === 1770 ? 'Giờ Thấp Điểm' :
-                                                    currentPrice === 3176 ? 'Giờ Bình Thường' :
-                                                        'Chưa xác định'}
+                                            {currentPrice === 3398 ? t('dashboard.peakHour' as any) :
+                                                currentPrice === 1190 ? t('dashboard.offPeakHour' as any) :
+                                                    currentPrice === 1833 ? t('dashboard.normalHour' as any) :
+                                                        t('dashboard.unknown' as any)}
                                         </span>
                                     }
                                 />
                                 {/* Row 2, Col 2 */}
                                 <div className="rounded-xl border border-border bg-card p-4 w-full overflow-hidden">
                                     <div className="flex items-center justify-between mb-3 min-w-0">
-                                        <span className="text-sm sm:text-lg font-bold text-muted-foreground truncate mr-2">CO₂ Avoidance</span>
+                                        <span className="text-sm sm:text-lg font-bold text-muted-foreground truncate mr-2">{t('dashboard.co2Avoidance' as any)}</span>
                                         <div className="p-1.5 sm:p-2 rounded-lg bg-emerald-500/10 flex-shrink-0">
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-500"><path d="M17 8c.7-1 1-2.2 1-3.5A5.5 5.5 0 0 0 12.5 0 5.5 5.5 0 0 0 7 4.5c0 1.3.3 2.5 1 3.5" /><path d="M12 22V10" /><path d="m4.5 13.5 3-3L12 15l4.5-4.5 3 3" /></svg>
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
-                                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Today</span>
+                                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('dashboard.today' as any)}</span>
                                             <div className="flex items-baseline gap-1 mt-1 flex-wrap min-w-0">
                                                 <span className="text-lg sm:text-2xl font-bold tracking-tight break-all">
                                                     {dailyYield != null ? (dailyYield * 0.7221).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) : '—'}
@@ -213,7 +219,7 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
                                             </div>
                                         </div>
                                         <div>
-                                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total</span>
+                                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('dashboard.total' as any)}</span>
                                             <div className="flex items-baseline gap-1 mt-1 flex-wrap min-w-0">
                                                 <span className="text-lg sm:text-2xl font-bold tracking-tight break-all">
                                                     {lifetimeYield != null ? (lifetimeYield * 0.7221 / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) : '—'}
@@ -229,21 +235,21 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
                         {/* Row 2: Grid Power */}
                         <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 gap-4">
                             <KpiCard
-                                label="Công suất lấy từ lưới"
+                                label={t('dashboard.gridImport' as any)}
                                 value={formatPower(gridWIn)}
                                 unit="kW"
                                 icon={Zap}
                                 loading={isKpiLoading}
                             />
                             <KpiCard
-                                label="Công suất phát ngược lên lưới"
+                                label={t('dashboard.gridExport' as any)}
                                 value={formatPower(gridWOut)}
                                 unit="kW"
                                 icon={Zap}
                                 loading={isKpiLoading}
                             />
                             <KpiCard
-                                label="Tổng công suất tiêu thụ"
+                                label={t('dashboard.totalConsumption' as any)}
                                 value={formatPower(plantConsumption)}
                                 unit="kW"
                                 icon={Zap}
@@ -258,62 +264,62 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
                     {/* Doanh thu và Sản lượng */}
                     <div>
                         <h2 className="text-lg font-bold mb-3">
-                            Doanh thu và Sản lượng
+                            {t('dashboard.revenueAndYield' as any)}
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <KpiCard
-                                label="Sản lượng giờ"
+                                label={t('dashboard.hourlyYield' as any)}
                                 value={formatEnergy(hourlyYield)}
                                 unit="kWh"
                                 icon={BarChart3}
                                 loading={isKpiLoading}
                             />
                             <KpiCard
-                                label="Doanh thu giờ"
+                                label={t('dashboard.hourlyRevenue' as any)}
                                 value={formatRevenueKVND(hourlyRevenue)}
-                                unit="KVNĐ"
+                                unit={t('dashboard.unitKvnd' as any)}
                                 icon={DollarSign}
                                 loading={isKpiLoading}
                             />
                             <KpiCard
-                                label="Sản lượng ngày"
+                                label={t('dashboard.dailyYield' as any)}
                                 value={formatEnergy(dailyYield)}
                                 unit="kWh"
                                 icon={BarChart3}
                                 loading={isKpiLoading}
                             />
                             <KpiCard
-                                label="Doanh thu ngày"
+                                label={t('dashboard.dailyRevenue' as any)}
                                 value={formatRevenueKVND(dailyRevenue)}
-                                unit="KVNĐ"
+                                unit={t('dashboard.unitKvnd' as any)}
                                 icon={DollarSign}
                                 loading={isKpiLoading}
                             />
                             <KpiCard
-                                label="Sản lượng tháng"
+                                label={t('dashboard.monthlyYield' as any)}
                                 value={formatEnergy(monthlyYield)}
                                 unit="kWh"
                                 icon={BarChart3}
                                 loading={isKpiLoading}
                             />
                             <KpiCard
-                                label="Doanh thu tháng"
+                                label={t('dashboard.monthlyRevenue' as any)}
                                 value={formatRevenueKVND(monthlyRevenue)}
-                                unit="KVNĐ"
+                                unit={t('dashboard.unitKvnd' as any)}
                                 icon={DollarSign}
                                 loading={isKpiLoading}
                             />
                             <KpiCard
-                                label="Sản lượng năm"
+                                label={t('dashboard.yearlyYield' as any)}
                                 value={formatEnergy(totalYield)}
                                 unit="kWh"
                                 icon={BarChart3}
                                 loading={isKpiLoading}
                             />
                             <KpiCard
-                                label="Doanh thu năm"
+                                label={t('dashboard.yearlyRevenue' as any)}
                                 value={formatRevenueKVND(totalRevenue)}
-                                unit="KVNĐ"
+                                unit={t('dashboard.unitKvnd' as any)}
                                 icon={DollarSign}
                                 loading={isKpiLoading}
                             />
@@ -324,7 +330,7 @@ export function ScopeDashboard({ scope }: ScopeDashboardProps) {
                     {inverterVars.length > 0 && (
                         <div>
                             <h2 className="text-lg font-bold mb-3">
-                                Thiết bị trong hệ thống
+                                {t('dashboard.systemDevices' as any)}
                             </h2>
                             {scope === Scope.TOTAL ? (
                                 <div className="space-y-4">

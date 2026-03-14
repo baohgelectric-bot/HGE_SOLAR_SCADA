@@ -16,12 +16,14 @@ import {
     WifiOff,
     Zap,
     Cpu as CpuIcon,
-    GaugeCircle
+    GaugeCircle,
+    Info
 } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { Header } from '@/components/layout/Header';
 import { useRealtimeData } from '@/hooks/useRealtimeData';
 import { WeatherWidget } from '@/components/widgets/WeatherWidget';
+import { useTranslation } from '@/hooks/useTranslation';
 
 /* ─── Types ─── */
 type BackendStatus = 'online' | 'offline' | 'restarted';
@@ -54,7 +56,7 @@ const COM_STATUS_VARS = [
 const EVENTS_REFETCH_MS = 30_000; // 30 seconds
 
 /* ─── Helpers ─── */
-function formatUptime(seconds: number | null): string {
+function formatUptime(seconds: number | null, t: any): string {
     if (seconds == null || seconds < 0) return '—';
     const d = Math.floor(seconds / 86400);
     const h = Math.floor((seconds % 86400) / 3600);
@@ -111,9 +113,9 @@ function getProgressPercent(varName: string, value: number | null): number {
     }
 }
 
-const METRIC_CONFIG: Record<string, { label: string; unit: string; icon: typeof Cpu }> = {
-    sys_ram: { label: 'RAM', unit: '%', icon: MemoryStick },
-    sys_disk_free: { label: 'Bộ nhớ trống', unit: 'GB', icon: HardDrive },
+const METRIC_CONFIG_KEYS = {
+    sys_ram: { labelKey: 'ram', unit: '%' },
+    sys_disk_free: { labelKey: 'freeDisk', unit: 'GB' },
 };
 
 /* ─── Circular Progress Ring ─── */
@@ -155,11 +157,11 @@ function CircularProgress({ percent, color, size = 64, strokeWidth = 5 }: {
 }
 
 /* ─── MetricCard ─── */
-function MetricCard({ varName, value }: { varName: string; value: number | null }) {
-    const config = METRIC_CONFIG[varName];
-    if (!config) return null;
+function MetricCard({ varName, value, t }: { varName: string; value: number | null; t: any }) {
+    const configKey = METRIC_CONFIG_KEYS[varName as keyof typeof METRIC_CONFIG_KEYS];
+    if (!configKey) return null;
 
-    const Icon = config.icon;
+    const Icon = varName === 'sys_ram' ? MemoryStick : HardDrive;
     const color = getMetricColor(varName, value);
     const bgColor = getMetricBgColor(varName, value);
     const percent = getProgressPercent(varName, value);
@@ -178,13 +180,13 @@ function MetricCard({ varName, value }: { varName: string; value: number | null 
 
             <div className="text-center z-10">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
-                    {config.label}
+                    {t(`monitor.${configKey.labelKey}` as any)}
                 </p>
                 <div className="flex items-baseline justify-center gap-1">
                     <span className={`text-3xl font-bold tracking-tight ${color} transition-colors`}>
                         {value != null ? (varName === 'sys_disk_free' ? value.toFixed(1) : Math.round(value)) : '—'}
                     </span>
-                    <span className="text-sm font-semibold text-muted-foreground">{config.unit}</span>
+                    <span className="text-sm font-semibold text-muted-foreground">{configKey.unit}</span>
                 </div>
             </div>
         </div>
@@ -192,12 +194,12 @@ function MetricCard({ varName, value }: { varName: string; value: number | null 
 }
 
 /* ─── StatusBadge ─── */
-function StatusBadge({ status }: { status: BackendStatus }) {
+function StatusBadge({ status, t }: { status: BackendStatus; t: any }) {
     const config = {
         online: {
             icon: CheckCircle2,
-            label: 'Online',
-            desc: 'Backend đang hoạt động bình thường',
+            label: t('monitor.online' as any) || 'Online',
+            desc: t('monitor.backendActive' as any),
             color: 'text-emerald-500',
             bg: 'bg-emerald-500/10',
             border: 'border-emerald-500/20',
@@ -206,8 +208,8 @@ function StatusBadge({ status }: { status: BackendStatus }) {
         },
         offline: {
             icon: XCircle,
-            label: 'Offline',
-            desc: 'Backend không phản hồi. Kiểm tra kết nối!',
+            label: t('monitor.offline' as any) || 'Offline',
+            desc: t('monitor.backendOffline' as any),
             color: 'text-red-500',
             bg: 'bg-red-500/10',
             border: 'border-red-500/20',
@@ -216,8 +218,8 @@ function StatusBadge({ status }: { status: BackendStatus }) {
         },
         restarted: {
             icon: RotateCcw,
-            label: 'Restarted',
-            desc: 'Hệ thống vừa khởi động lại',
+            label: t('monitor.restarted' as any) || 'Restarted',
+            desc: t('monitor.sysRestarted' as any),
             color: 'text-amber-500',
             bg: 'bg-amber-500/10',
             border: 'border-amber-500/20',
@@ -250,33 +252,33 @@ function StatusBadge({ status }: { status: BackendStatus }) {
 }
 
 /* ─── DeviceStatusCard ─── */
-function DeviceStatusCard({ name, statusValue }: { name: string; statusValue: number | null }) {
+function DeviceStatusCard({ name, statusValue, t }: { name: string; statusValue: number | null; t: any }) {
     const isOnline = statusValue === 1.0;
     const isUnknown = statusValue === null || statusValue === undefined;
 
     // Xác định nội dung thông báo online riêng biệt cho từng nhóm để dễ tuỳ chỉnh sau này
-    let onlineDesc = 'Đang kết nối bình thường';
+    let onlineDesc = t('monitor.dmConnected' as any) || 'Đang kết nối bình thường';
     if (name.startsWith('DM')) {
-        onlineDesc = 'Có kết nối từ DM tới IOT2050';
+        onlineDesc = t('monitor.dmConnected' as any);
     } else if (name.startsWith('INVT')) {
-        onlineDesc = 'Có kết nối từ Inverter tới bộ DM';
+        onlineDesc = t('monitor.invtConnected' as any);
     } else if (name.startsWith('METER')) {
-        onlineDesc = 'Có kết nối từ Energy Meter tới bộ DM';
+        onlineDesc = t('monitor.meterConnected' as any);
     }
 
     // Xác định nội dung thông báo offline riêng biệt cho từng nhóm
     let offlineDesc = 'Mất kết nối thiết bị!';
     if (name.startsWith('DM')) {
-        offlineDesc = 'Mất kết nối từ DM tới IOT2050';
+        offlineDesc = t('monitor.dmDisconnected' as any);
     } else if (name.startsWith('INVT')) {
-        offlineDesc = 'Mất kết nối từ Inverter tới bộ DM';
+        offlineDesc = t('monitor.invtDisconnected' as any);
     } else if (name.startsWith('METER')) {
-        offlineDesc = 'Mất kết nối từ Energy Meter tới bộ DM';
+        offlineDesc = t('monitor.meterDisconnected' as any);
     }
 
     const config = isOnline ? {
         icon: CheckCircle2,
-        label: 'Online',
+        label: t('monitor.online' as any) || 'Online',
         desc: onlineDesc,
         color: 'text-emerald-500',
         bg: 'bg-emerald-500/10',
@@ -353,8 +355,45 @@ function DeviceStatusCard({ name, statusValue }: { name: string; statusValue: nu
 }
 
 
+function translateEventMessage(msg: string, eventType: string, deviceName?: string, t?: any) {
+    if (!msg) return msg;
+
+    // For original text-based fallback
+    if (msg.includes('Backend có kết nối trở lại')) return t('monitor.backendActive' as any);
+    if (msg.includes('Backend mất kết nối')) return t('monitor.backendOffline' as any);
+    if (msg.includes('Hệ thống vừa khởi động lại') || msg.includes('Hệ thống khởi động lại (uptime reset)')) return t('monitor.sysRestarted' as any);
+    if (msg.includes('Có kết nối từ DM tới IOT2050')) return t('monitor.dmConnected' as any);
+    if (msg.includes('Mất kết nối từ DM tới IOT2050')) return t('monitor.dmDisconnected' as any);
+    if (msg.includes('Có kết nối từ Inverter tới bộ DM')) return t('monitor.invtConnected' as any);
+    if (msg.includes('Mất kết nối từ Inverter tới bộ DM')) return t('monitor.invtDisconnected' as any);
+    if (msg.includes('Có kết nối từ Energy Meter tới bộ DM')) return t('monitor.meterConnected' as any);
+    if (msg.includes('Mất kết nối từ Energy Meter tới bộ DM')) return t('monitor.meterDisconnected' as any);
+
+    // New logic based on status codes '0', '1', '2'
+    if (msg === '1') {
+        if (!deviceName) return t('monitor.backendActive' as any); // Backend event
+        if (deviceName.startsWith('DM')) return t('monitor.dmConnected' as any);
+        if (deviceName.startsWith('INVT')) return t('monitor.invtConnected' as any);
+        if (deviceName.startsWith('METER')) return t('monitor.meterConnected' as any);
+        return t('monitor.online' as any) || 'Đang kết nối bình thường';
+    }
+    if (msg === '0') {
+        if (!deviceName) return t('monitor.backendOffline' as any); // Backend event
+        if (deviceName.startsWith('DM')) return t('monitor.dmDisconnected' as any);
+        if (deviceName.startsWith('INVT')) return t('monitor.invtDisconnected' as any);
+        if (deviceName.startsWith('METER')) return t('monitor.meterDisconnected' as any);
+        return t('monitor.offline' as any) || 'Mất kết nối thiết bị!';
+    }
+    if (msg === '2') {
+        if (!deviceName) return t('monitor.sysRestarted' as any); // Backend event
+        return t('monitor.unknown' as any) || 'Chưa biết trạng thái hiện tại';
+    }
+
+    return msg;
+}
+
 /* ─── EventRow ─── */
-function EventRow({ event }: { event: BackendEvent }) {
+function EventRow({ event, t }: { event: BackendEvent; t: any }) {
     const timeStr = new Date(event.recorded_at).toLocaleString('vi-VN', {
         day: '2-digit',
         month: '2-digit',
@@ -365,10 +404,10 @@ function EventRow({ event }: { event: BackendEvent }) {
     });
 
     const typeConfig = {
-        online: { color: 'text-sky-400', bg: 'bg-sky-500/10', icon: Wifi, label: 'ONLINE' },
-        restarted: { color: 'text-amber-400', bg: 'bg-amber-500/10', icon: RotateCcw, label: 'RESTART' },
-        offline: { color: 'text-red-400', bg: 'bg-red-500/10', icon: WifiOff, label: 'OFFLINE' },
-    }[event.event_type];
+        online: { color: 'text-sky-400', bg: 'bg-sky-500/10', icon: Wifi, label: t('monitor.online' as any) || 'ONLINE' },
+        restarted: { color: 'text-amber-400', bg: 'bg-amber-500/10', icon: RotateCcw, label: t('monitor.restarted' as any) || 'RESTART' },
+        offline: { color: 'text-red-400', bg: 'bg-red-500/10', icon: WifiOff, label: t('monitor.offline' as any) || 'OFFLINE' },
+    }[event.event_type] || { color: 'text-gray-400', bg: 'bg-gray-500/10', icon: Info, label: event.event_type };
 
     const Icon = typeConfig.icon;
 
@@ -378,7 +417,7 @@ function EventRow({ event }: { event: BackendEvent }) {
                 <Icon className={`h-3.5 w-3.5 ${typeConfig.color}`} />
             </div>
             <div className="flex-1 min-w-0">
-                <p className="text-sm leading-snug">{event.message}</p>
+                <p className="text-sm leading-snug">{translateEventMessage(event.message, event.event_type, undefined, t)}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{timeStr}</p>
             </div>
             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${typeConfig.bg} ${typeConfig.color} opacity-60 group-hover:opacity-100 transition-opacity`}>
@@ -389,7 +428,7 @@ function EventRow({ event }: { event: BackendEvent }) {
 }
 
 /* ─── DeviceEventRow ─── */
-function DeviceEventRow({ event }: { event: DeviceEvent }) {
+function DeviceEventRow({ event, t }: { event: DeviceEvent; t: any }) {
     const timeStr = new Date(event.recorded_at).toLocaleString('vi-VN', {
         day: '2-digit',
         month: '2-digit',
@@ -400,9 +439,9 @@ function DeviceEventRow({ event }: { event: DeviceEvent }) {
     });
 
     const typeConfig = {
-        online: { color: 'text-emerald-400', bg: 'bg-emerald-500/10', icon: Wifi, label: 'ONLINE' },
-        offline: { color: 'text-red-400', bg: 'bg-red-500/10', icon: WifiOff, label: 'OFFLINE' },
-    }[event.event_type];
+        online: { color: 'text-emerald-400', bg: 'bg-emerald-500/10', icon: Wifi, label: t('monitor.online' as any) || 'ONLINE' },
+        offline: { color: 'text-red-400', bg: 'bg-red-500/10', icon: WifiOff, label: t('monitor.offline' as any) || 'OFFLINE' },
+    }[event.event_type] || { color: 'text-gray-400', bg: 'bg-gray-500/10', icon: Info, label: event.event_type };
 
     const Icon = typeConfig.icon;
 
@@ -431,7 +470,9 @@ function DeviceEventRow({ event }: { event: DeviceEvent }) {
             </div>
             <div className="flex-1 min-w-0">
                 <p className="text-sm leading-snug font-medium">{deviceName}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{event.message}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                    {translateEventMessage(event.message, event.event_type, event.device_name, t)}
+                </p>
                 <p className="text-xs text-muted-foreground mt-0.5">{timeStr}</p>
             </div>
             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${typeConfig.bg} ${typeConfig.color} opacity-60 group-hover:opacity-100 transition-opacity`}>
@@ -448,6 +489,8 @@ export default function MonitorBackendPage() {
     const { data: realtimeData, connection } = useRealtimeData({
         varNames,
     });
+
+    const { t } = useTranslation();
 
     const [events, setEvents] = useState<BackendEvent[]>([]);
     const [deviceEvents, setDeviceEvents] = useState<DeviceEvent[]>([]);
@@ -522,9 +565,9 @@ export default function MonitorBackendPage() {
                     {/* Title */}
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                         <div>
-                            <h1 className="text-2xl font-bold">Monitor Backend</h1>
+                            <h1 className="text-2xl font-bold">{t('monitor.title' as any)}</h1>
                             <p className="text-sm text-muted-foreground mt-1">
-                                Giám sát tình trạng hệ thống IOT2050 Advance đang vận hành backend
+                                {t('monitor.desc' as any)}
                             </p>
                         </div>
                         <WeatherWidget />
@@ -532,7 +575,7 @@ export default function MonitorBackendPage() {
 
                     {/* Backend Status + Uptime */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <StatusBadge status={backendStatus} />
+                        <StatusBadge status={backendStatus} t={t} />
 
                         <div className="rounded-xl border border-border bg-card p-5 flex items-center gap-4">
                             <div className="p-3 rounded-full bg-violet-500/10">
@@ -540,13 +583,13 @@ export default function MonitorBackendPage() {
                             </div>
                             <div>
                                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                    Uptime
+                                    {t('monitor.uptime' as any)}
                                 </p>
                                 <p className="text-2xl font-bold tracking-tight text-violet-500 mt-0.5">
-                                    {formatUptime(sysUptime)}
+                                    {formatUptime(sysUptime, t)}
                                 </p>
                                 <p className="text-xs text-muted-foreground mt-0.5">
-                                    {sysUptime != null ? `${Math.floor(sysUptime).toLocaleString('vi-VN')} giây` : '—'}
+                                    {sysUptime != null ? `${Math.floor(sysUptime).toLocaleString('vi-VN')} ${t('monitor.seconds' as any)}` : '—'}
                                 </p>
                             </div>
                         </div>
@@ -558,8 +601,8 @@ export default function MonitorBackendPage() {
                         <div>
                             <div className="flex items-center gap-2 mb-4">
                                 <CpuIcon className="h-5 w-5 text-muted-foreground" />
-                                <h2 className="text-lg font-bold">Data Manager (DM)</h2>
-                                <span className="ml-2 text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{dmVars.length} thiết bị</span>
+                                <h2 className="text-lg font-bold">{t('monitor.dm' as any)}</h2>
+                                <span className="ml-2 text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{dmVars.length} {t('monitor.devices' as any)}</span>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 {dmVars.map(varName => (
@@ -567,6 +610,7 @@ export default function MonitorBackendPage() {
                                         key={varName}
                                         name={varName}
                                         statusValue={realtimeData.get(varName)?.value ?? null}
+                                        t={t}
                                     />
                                 ))}
                             </div>
@@ -576,8 +620,8 @@ export default function MonitorBackendPage() {
                         <div>
                             <div className="flex items-center gap-2 mb-4">
                                 <Zap className="h-5 w-5 text-muted-foreground" />
-                                <h2 className="text-lg font-bold">Inverter (Biến Tần)</h2>
-                                <span className="ml-2 text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{inverterVars.length} thiết bị</span>
+                                <h2 className="text-lg font-bold">{t('monitor.inverter' as any)}</h2>
+                                <span className="ml-2 text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{inverterVars.length} {t('monitor.devices' as any)}</span>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 {inverterVars.map(varName => (
@@ -585,6 +629,7 @@ export default function MonitorBackendPage() {
                                         key={varName}
                                         name={varName}
                                         statusValue={realtimeData.get(varName)?.value ?? null}
+                                        t={t}
                                     />
                                 ))}
                             </div>
@@ -594,8 +639,8 @@ export default function MonitorBackendPage() {
                         <div>
                             <div className="flex items-center gap-2 mb-4">
                                 <GaugeCircle className="h-5 w-5 text-muted-foreground" />
-                                <h2 className="text-lg font-bold">Energy Meter (Đồng Hồ)</h2>
-                                <span className="ml-2 text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{meterVars.length} thiết bị</span>
+                                <h2 className="text-lg font-bold">{t('monitor.meter' as any)}</h2>
+                                <span className="ml-2 text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{meterVars.length} {t('monitor.devices' as any)}</span>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 {meterVars.map(varName => (
@@ -603,6 +648,7 @@ export default function MonitorBackendPage() {
                                         key={varName}
                                         name={varName}
                                         statusValue={realtimeData.get(varName)?.value ?? null}
+                                        t={t}
                                     />
                                 ))}
                             </div>
@@ -615,11 +661,11 @@ export default function MonitorBackendPage() {
                         <div>
                             <div className="flex items-center gap-2 mb-4">
                                 <Server className="h-5 w-5 text-muted-foreground" />
-                                <h2 className="text-lg font-bold">Tài nguyên hệ thống</h2>
+                                <h2 className="text-lg font-bold">{t('monitor.sysResources' as any)}</h2>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <MetricCard varName="sys_ram" value={sysRam} />
-                                <MetricCard varName="sys_disk_free" value={sysDiskFree} />
+                                <MetricCard varName="sys_ram" value={sysRam} t={t} />
+                                <MetricCard varName="sys_disk_free" value={sysDiskFree} t={t} />
                             </div>
                         </div>
 
@@ -629,20 +675,20 @@ export default function MonitorBackendPage() {
                             <div className="rounded-xl border border-border bg-card overflow-hidden flex flex-col max-h-[400px]">
                                 <div className="flex items-center gap-2 px-5 py-4 border-b border-border shrink-0">
                                     <ScrollText className="h-5 w-5 text-muted-foreground" />
-                                    <h2 className="text-lg font-bold">Lịch sử sự kiện IOT2050</h2>
+                                    <h2 className="text-lg font-bold">{t('monitor.historyIot' as any)}</h2>
                                     <span className="ml-auto text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                                        {events.length} sự kiện
+                                        {events.length} {t('monitor.events' as any)}
                                     </span>
                                 </div>
                                 <div className="overflow-y-auto divide-y divide-border/50 flex-1 p-2 min-h-[200px]">
                                     {events.length === 0 ? (
                                         <div className="flex flex-col items-center justify-center py-12 text-muted-foreground h-full">
                                             <Activity className="h-8 w-8 mb-2 opacity-30" />
-                                            <p className="text-sm">Chưa có sự kiện nào</p>
+                                            <p className="text-sm">{t('monitor.noEvents' as any)}</p>
                                         </div>
                                     ) : (
                                         events.map(event => (
-                                            <EventRow key={event.id} event={event} />
+                                            <EventRow key={event.id} event={event} t={t} />
                                         ))
                                     )}
                                 </div>
@@ -652,20 +698,20 @@ export default function MonitorBackendPage() {
                             <div className="rounded-xl border border-border bg-card overflow-hidden flex flex-col max-h-[400px]">
                                 <div className="flex items-center gap-2 px-5 py-4 border-b border-border shrink-0">
                                     <Activity className="h-5 w-5 text-muted-foreground" />
-                                    <h2 className="text-lg font-bold">Lịch sử sự kiện các thiết bị</h2>
+                                    <h2 className="text-lg font-bold">{t('monitor.historyDevices' as any)}</h2>
                                     <span className="ml-auto text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                                        {deviceEvents.length} sự kiện
+                                        {deviceEvents.length} {t('monitor.events' as any)}
                                     </span>
                                 </div>
                                 <div className="overflow-y-auto divide-y divide-border/50 flex-1 p-2 min-h-[200px]">
                                     {deviceEvents.length === 0 ? (
                                         <div className="flex flex-col items-center justify-center py-12 text-muted-foreground h-full">
                                             <Activity className="h-8 w-8 mb-2 opacity-30" />
-                                            <p className="text-sm">Chưa có sự kiện nào</p>
+                                            <p className="text-sm">{t('monitor.noEvents' as any)}</p>
                                         </div>
                                     ) : (
                                         deviceEvents.map(event => (
-                                            <DeviceEventRow key={event.id} event={event} />
+                                            <DeviceEventRow key={event.id} event={event} t={t} />
                                         ))
                                     )}
                                 </div>

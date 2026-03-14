@@ -102,3 +102,12 @@ body {
 .recharts-default-tooltip {
   border-radius: 8px !important;
 }
+
+/* Remove default browser focus outline on recharts svg elements (fixes thick white border on mobile tap) */
+.recharts-wrapper * {
+  outline: none !important;
+}
+
+.recharts-active-bar, .recharts-bar-rectangle {
+  outline: none !important;
+}

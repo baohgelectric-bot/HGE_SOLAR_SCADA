@@ -7,6 +7,8 @@ import { Header } from '@/components/layout/Header';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { ALLOWED_ACCOUNTS, hashPassword } from '@/config/auth';
 import { WeatherWidget } from '@/components/widgets/WeatherWidget';
+import { useTranslation } from '@/hooks/useTranslation';
+import { useLanguageStore } from '@/store/useLanguageStore';
 
 const REPORT_TYPE_OPTIONS = [
     { value: 'ALL', label: 'Tất cả' },
@@ -35,6 +37,19 @@ export default function ExportPage() {
     const [password, setPassword] = useState('');
     const [authMessage, setAuthMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
     const [isDownloading, setIsDownloading] = useState(false);
+    const { t } = useTranslation();
+    const { language } = useLanguageStore();
+
+    // Re-create options inside component to support translations
+    const reportTypeOptions = useMemo(() => [
+        { value: 'ALL', label: t('export.all' as any) },
+        { value: 'DAILY', label: t('filters.day' as any) },
+        { value: 'HOURLY', label: t('filters.hour' as any) }, // Keep native logic or add to filters
+        { value: 'WEEKLY', label: t('filters.week' as any) },
+        { value: 'MONTHLY', label: t('filters.month' as any) },
+        { value: 'QUARTERLY', label: t('filters.quarter' as any) },
+        { value: 'YEARLY', label: t('filters.year' as any) },
+    ], [t]);
 
     // Build the download URL dynamically based on selected filters
     const downloadUrl = useMemo(() => {
@@ -45,20 +60,20 @@ export default function ExportPage() {
         toDateObj.setDate(toDateObj.getDate() + 1);
         const toIso = toDateObj.toISOString();
 
-        return `/api/export?scope=${encodeURIComponent(scope)}&from=${encodeURIComponent(fromIso)}&to=${encodeURIComponent(toIso)}&report_type=${encodeURIComponent(reportType)}`;
-    }, [scope, fromDate, toDate, reportType]);
+        return `/api/export?scope=${encodeURIComponent(scope)}&from=${encodeURIComponent(fromIso)}&to=${encodeURIComponent(toIso)}&report_type=${encodeURIComponent(reportType)}&lang=${encodeURIComponent(language)}`;
+    }, [scope, fromDate, toDate, reportType, language]);
 
     const hasError = !fromDate || !toDate || fromDate > toDate;
 
-    const scopes = [
-        { value: 'ALL', label: 'Tất cả các Trạm' },
-        { value: Scope.TOTAL, label: SCOPE_LABELS[Scope.TOTAL] },
-        { value: Scope.DM1, label: SCOPE_LABELS[Scope.DM1] },
-        { value: Scope.DM2, label: SCOPE_LABELS[Scope.DM2] },
-        { value: Scope.DM3, label: SCOPE_LABELS[Scope.DM3] },
-        { value: Scope.TOTAL_A, label: SCOPE_LABELS[Scope.TOTAL_A] },
-        { value: Scope.TOTAL_B, label: SCOPE_LABELS[Scope.TOTAL_B] },
-    ];
+    const scopes = useMemo(() => [
+        { value: 'ALL', label: t('export.allPlants' as any) },
+        { value: Scope.TOTAL, label: t('sidebar.total' as any) },
+        { value: Scope.DM1, label: t('sidebar.dm1' as any) },
+        { value: Scope.DM2, label: t('sidebar.dm2' as any) },
+        { value: Scope.DM3, label: t('sidebar.dm3' as any) },
+        { value: Scope.TOTAL_A, label: t('sidebar.totala' as any) },
+        { value: Scope.TOTAL_B, label: t('sidebar.totalb' as any) },
+    ], [t]);
 
     // ── Download handler ─────────────────────────────────────────────────
     const handleDownload = useCallback(async () => {
@@ -66,7 +81,7 @@ export default function ExportPage() {
 
         // 1. Check empty fields
         if (!username.trim() || !password.trim()) {
-            setAuthMessage({ type: 'error', text: 'Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu' });
+            setAuthMessage({ type: 'error', text: t('export.errInput' as any) });
             return;
         }
 
@@ -76,7 +91,7 @@ export default function ExportPage() {
             (a) => a.user === username.trim() && a.hash === inputHash
         );
         if (!account) {
-            setAuthMessage({ type: 'error', text: 'Tên đăng nhập hoặc mật khẩu không đúng' });
+            setAuthMessage({ type: 'error', text: t('export.errAuth' as any) });
             return;
         }
 
@@ -92,7 +107,7 @@ export default function ExportPage() {
                 const errData = await response.json().catch(() => null);
                 setAuthMessage({
                     type: 'error',
-                    text: errData?.error || 'Không thể tải dữ liệu. Vui lòng thử lại.',
+                    text: errData?.error || (t('export.errDownload' as any)),
                 });
                 return;
             }
@@ -116,7 +131,7 @@ export default function ExportPage() {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
 
-            setAuthMessage({ type: 'success', text: 'Tải xuống thành công!' });
+            setAuthMessage({ type: 'success', text: t('export.successDownload' as any) });
 
             // 4. Log to Supabase in the background (fire-and-forget)
             const supabase = getSupabaseBrowserClient();
@@ -132,7 +147,7 @@ export default function ExportPage() {
                     if (insertError) console.error('Failed to log download:', insertError.message);
                 });
         } catch {
-            setAuthMessage({ type: 'error', text: 'Lỗi kết nối. Vui lòng thử lại.' });
+            setAuthMessage({ type: 'error', text: t('export.errConnection' as any) });
         } finally {
             setIsDownloading(false);
         }
@@ -150,10 +165,10 @@ export default function ExportPage() {
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                         <div>
                             <h1 className="text-2xl font-bold">
-                                Xuất dữ liệu
+                                {t('export.title' as any)}
                             </h1>
                             <p className="text-sm text-muted-foreground mt-1">
-                                Trích xuất báo cáo hệ thống
+                                {t('export.subtitle' as any)}
                             </p>
                         </div>
                         <WeatherWidget />
@@ -165,10 +180,10 @@ export default function ExportPage() {
                             <FileSpreadsheet className="h-10 w-10 text-primary" />
                         </div>
                         <h2 className="text-3xl font-bold tracking-tight text-foreground text-center mb-3">
-                            Xuất dữ liệu hệ thống
+                            {t('export.heading' as any)}
                         </h2>
                         <p className="text-muted-foreground text-center max-w-[600px] mb-8">
-                            Tùy chọn trạm, loại báo cáo và khoảng thời gian để tải về báo cáo tổng hợp dạng tệp CSV, phục vụ tính toán và phân tích trên Microsoft Excel.
+                            {t('export.desc' as any)}
                         </p>
 
                         <div className="w-full bg-card border border-border/50 rounded-2xl p-6 shadow-sm">
@@ -177,7 +192,7 @@ export default function ExportPage() {
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold flex items-center gap-2">
                                         <Building2 className="h-4 w-4 text-muted-foreground" />
-                                        Chọn Trạm điện
+                                        {t('export.selectPlant' as any)}
                                     </label>
                                     <select
                                         className={inputClass}
@@ -194,14 +209,14 @@ export default function ExportPage() {
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold flex items-center gap-2">
                                         <FileBarChart className="h-4 w-4 text-muted-foreground" />
-                                        Loại báo cáo
+                                        {t('export.reportType' as any)}
                                     </label>
                                     <select
                                         className={inputClass}
                                         value={reportType}
                                         onChange={(e) => setReportType(e.target.value)}
                                     >
-                                        {REPORT_TYPE_OPTIONS.map(rt => (
+                                        {reportTypeOptions.map(rt => (
                                             <option key={rt.value} value={rt.value}>{rt.label}</option>
                                         ))}
                                     </select>
@@ -212,7 +227,7 @@ export default function ExportPage() {
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold flex items-center gap-2">
                                             <Calendar className="h-4 w-4 text-muted-foreground" />
-                                            Từ ngày
+                                            {t('export.fromDate' as any)}
                                         </label>
                                         <input
                                             type="date"
@@ -225,7 +240,7 @@ export default function ExportPage() {
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold flex items-center gap-2">
                                             <Calendar className="h-4 w-4 text-muted-foreground" />
-                                            Đến ngày
+                                            {t('export.toDate' as any)}
                                         </label>
                                         <input
                                             type="date"
@@ -241,25 +256,25 @@ export default function ExportPage() {
                                 {/* Validation Error */}
                                 {hasError && fromDate && toDate && fromDate > toDate && (
                                     <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium">
-                                        Ngày kết thúc phải sau ngày bắt đầu
+                                        {t('export.dateError' as any)}
                                     </div>
                                 )}
 
                                 {/* ── Authentication fields ────────────────────────── */}
                                 <div className="border-t border-border/50 pt-6 space-y-4">
                                     <p className="text-sm text-muted-foreground font-medium">
-                                        Nhập thông tin xác thực để tải xuống
+                                        {t('export.authTitle' as any)}
                                     </p>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <label className="text-sm font-semibold flex items-center gap-2">
                                                 <User className="h-4 w-4 text-muted-foreground" />
-                                                Tên đăng nhập
+                                                {t('export.username' as any)}
                                             </label>
                                             <input
                                                 type="text"
                                                 className={inputClass}
-                                                placeholder="Nhập tên đăng nhập"
+                                                placeholder={t('export.usernamePlaceholder' as any)}
                                                 value={username}
                                                 onChange={(e) => {
                                                     setUsername(e.target.value);
@@ -270,12 +285,12 @@ export default function ExportPage() {
                                         <div className="space-y-2">
                                             <label className="text-sm font-semibold flex items-center gap-2">
                                                 <Lock className="h-4 w-4 text-muted-foreground" />
-                                                Mật khẩu
+                                                {t('export.password' as any)}
                                             </label>
                                             <input
                                                 type="password"
                                                 className={inputClass}
-                                                placeholder="Nhập mật khẩu"
+                                                placeholder={t('export.passwordPlaceholder' as any)}
                                                 value={password}
                                                 onChange={(e) => {
                                                     setPassword(e.target.value);
@@ -309,7 +324,7 @@ export default function ExportPage() {
                                             }`}
                                     >
                                         <Download className="h-5 w-5" />
-                                        {isDownloading ? 'Đang tải xuống...' : 'Tải xuống File CSV'}
+                                        {isDownloading ? t('export.downloading' as any) : t('export.downloadBtn' as any)}
                                     </button>
                                 </div>
                             </div>

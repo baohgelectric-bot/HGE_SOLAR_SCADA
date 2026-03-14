@@ -17,6 +17,7 @@ import type { ChartDataPoint } from '@/types/scada.types';
 import { EmptyState } from '../ui/EmptyState';
 import { ErrorState } from '../ui/ErrorState';
 import { LoadingSkeleton } from '../ui/LoadingSkeleton';
+import { useTranslation } from '@/hooks/useTranslation';
 
 function useIsMobile(breakpoint = 640) {
     const [isMobile, setIsMobile] = useState(false);
@@ -55,6 +56,7 @@ export function BarChartWidget({
     height = 320,
 }: BarChartWidgetProps) {
     const isMobile = useIsMobile();
+    const { t } = useTranslation();
 
     if (isLoading) {
         return (
@@ -70,7 +72,7 @@ export function BarChartWidget({
             <div className={className}>
                 <h3 className="text-sm font-semibold mb-3">{title}</h3>
                 <ErrorState
-                    message={error?.message || 'Lỗi tải dữ liệu'}
+                    message={error?.message || (t('charts.errorLoading' as any))}
                     onRetry={onRetry}
                 />
             </div>
@@ -81,7 +83,7 @@ export function BarChartWidget({
         return (
             <div className={className}>
                 <h3 className="text-sm font-semibold mb-3">{title}</h3>
-                <EmptyState message="Chưa có dữ liệu trong khoảng thời gian này" />
+                <EmptyState message={t('charts.noDataBar' as any)} />
             </div>
         );
     }
@@ -167,10 +169,11 @@ export function BarChartWidget({
                         }}
                         formatter={(value: any, name: any) => {
                             const safeName = String(name || '');
-                            if (safeName.includes('Sản lượng')) {
-                                return [`${Number(value ?? 0).toLocaleString('vi-VN', { maximumFractionDigits: 2 })} kWh`, safeName];
+                            const locale = typeof window !== 'undefined' && window.localStorage.getItem('language-storage')?.includes('"language":"en"') ? 'en-US' : 'vi-VN';
+                            if (safeName.includes(t('charts.yield' as any))) {
+                                return [`${Number(value ?? 0).toLocaleString(locale, { maximumFractionDigits: 2 })} kWh`, safeName];
                             }
-                            return [`${Number(value ?? 0).toLocaleString('vi-VN', { maximumFractionDigits: 0 })} KVNĐ`, safeName];
+                            return [`${Number(value ?? 0).toLocaleString(locale, { maximumFractionDigits: 0 })} ${t('dashboard.unitKvnd' as any)}`, safeName];
                         }}
                     />
                     <Legend wrapperStyle={{ fontSize: '12px' }} />
@@ -179,7 +182,7 @@ export function BarChartWidget({
                         dataKey="yield_kwh"
                         fill={barColor}
                         radius={[4, 4, 0, 0]}
-                        name="Sản lượng (kWh)"
+                        name={t('charts.yieldKwh' as any)}
                         maxBarSize={30}
                         activeBar={{ stroke: 'hsl(var(--primary))', strokeWidth: 1, fillOpacity: 0.8 }}
                     />
@@ -191,7 +194,7 @@ export function BarChartWidget({
                         strokeWidth={3}
                         dot={{ r: 4, fill: '#2dd4bf', strokeWidth: 2 }}
                         activeDot={{ r: 6 }}
-                        name="Doanh thu (KVNĐ)"
+                        name={t('charts.revenueKVND' as any)}
                     />
                 </ComposedChart>
             </ResponsiveContainer>

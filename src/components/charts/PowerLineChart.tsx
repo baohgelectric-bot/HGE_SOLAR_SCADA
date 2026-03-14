@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { SCOPE_POWER_VAR, SCOPE_CAPACITY, type Scope } from '@/config/constants';
 import { Activity } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 /* ─── Constants ─── */
 const MAX_POINTS = 13;
@@ -132,6 +133,7 @@ export function PowerLineChart({ scope }: PowerLineChartProps) {
     const isMobile = useIsMobile();
     const { data: points, isLoading, isError } = usePowerProfile(scope);
     const capacity = SCOPE_CAPACITY[scope];
+    const { t } = useTranslation();
 
     // Current hour label
     const hourLabel = useMemo(() => {
@@ -149,7 +151,7 @@ export function PowerLineChart({ scope }: PowerLineChartProps) {
             <div className="flex items-center justify-between mb-3">
                 <div>
                     <h3 className="text-lg font-bold text-muted-foreground">
-                        Công suất phát trong giờ
+                        {t('charts.powerPerHour' as any)}
                     </h3>
                     <p className="text-sm text-muted-foreground mt-0.5">
                         {hourLabel}
@@ -157,7 +159,7 @@ export function PowerLineChart({ scope }: PowerLineChartProps) {
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <span className="inline-block h-2 w-2 rounded-full bg-sky-500 animate-pulse" />
-                    Live
+                    {t('charts.live' as any)}
                 </div>
             </div>
 
@@ -168,12 +170,12 @@ export function PowerLineChart({ scope }: PowerLineChartProps) {
                 </div>
             ) : isError ? (
                 <div className="h-[200px] flex items-center justify-center text-sm text-muted-foreground">
-                    Lỗi tải dữ liệu
+                    {t('charts.errorLoading' as any)}
                 </div>
             ) : !hasData ? (
                 <div className="h-[200px] flex flex-col items-center justify-center text-muted-foreground">
                     <Activity className="h-8 w-8 mb-2 opacity-30" />
-                    <p className="text-sm">Chưa có dữ liệu trong giờ này</p>
+                    <p className="text-sm">{t('charts.noDataHour' as any)}</p>
                 </div>
             ) : (
                 <ResponsiveContainer width="100%" height={200} className="text-muted-foreground">
@@ -212,7 +214,7 @@ export function PowerLineChart({ scope }: PowerLineChartProps) {
                         <Line
                             type="monotone"
                             dataKey="value"
-                            name="Công Suất (kW)"
+                            name={t('charts.powerKW' as any)}
                             stroke="#3b82f6"
                             strokeWidth={2.5}
                             dot={{ r: 3, fill: '#3b82f6', strokeWidth: 0 }}

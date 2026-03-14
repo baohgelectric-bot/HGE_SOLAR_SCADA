@@ -6,6 +6,12 @@ import {
     FilterType,
     TIMEZONE,
 } from '@/config/constants';
+import { useLanguageStore } from '@/store/useLanguageStore';
+
+function getLocale() {
+    if (typeof window === 'undefined') return 'vi-VN';
+    return useLanguageStore.getState().language === 'en' ? 'en-US' : 'vi-VN';
+}
 
 /** Merge Tailwind classes */
 export function cn(...inputs: ClassValue[]) {
@@ -15,7 +21,7 @@ export function cn(...inputs: ClassValue[]) {
 /** Format power value: 1 decimal (spec 5.2) */
 export function formatPower(value: number | null | undefined): string {
     if (value == null) return '—';
-    return value.toLocaleString('vi-VN', {
+    return value.toLocaleString(getLocale(), {
         minimumFractionDigits: 1,
         maximumFractionDigits: 1,
     });
@@ -24,7 +30,7 @@ export function formatPower(value: number | null | undefined): string {
 /** Format energy value: 2 decimals (spec 5.2) */
 export function formatEnergy(value: number | null | undefined): string {
     if (value == null) return '—';
-    return value.toLocaleString('vi-VN', {
+    return value.toLocaleString(getLocale(), {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     });
@@ -33,7 +39,7 @@ export function formatEnergy(value: number | null | undefined): string {
 /** Format currency VNĐ: thousands sep, no decimals (spec 5.2) */
 export function formatCurrency(value: number | null | undefined): string {
     if (value == null) return '—';
-    return value.toLocaleString('vi-VN', {
+    return value.toLocaleString(getLocale(), {
         maximumFractionDigits: 0,
     });
 }
@@ -41,7 +47,7 @@ export function formatCurrency(value: number | null | undefined): string {
 /** Format revenue in KVNĐ (data is already divided by backend): thousands sep, 1 decimal */
 export function formatRevenueKVND(value: number | null | undefined): string {
     if (value == null) return '—';
-    return value.toLocaleString('vi-VN', {
+    return value.toLocaleString(getLocale(), {
         minimumFractionDigits: 1,
         maximumFractionDigits: 1,
     });

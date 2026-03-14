@@ -13,6 +13,7 @@ import { formatEnergy, formatPower } from '@/lib/utils';
 import { EmptyState } from '../ui/EmptyState';
 import { ErrorState } from '../ui/ErrorState';
 import { LoadingSkeleton } from '../ui/LoadingSkeleton';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface PieSliceData {
     scope: string;
@@ -51,6 +52,7 @@ export function PieChartWidget({
     colors,
 }: PieChartWidgetProps) {
     const [activeIndex, setActiveIndex] = useState<number | null>(null);
+    const { t } = useTranslation();
 
     if (isLoading) {
         return (
@@ -66,7 +68,7 @@ export function PieChartWidget({
             <div className={className}>
                 <h3 className="mb-3 text-sm font-semibold">{title}</h3>
                 <ErrorState
-                    message={error?.message || 'Lỗi tải dữ liệu'}
+                    message={error?.message || (t('charts.errorLoading' as any))}
                     onRetry={onRetry}
                 />
             </div>
@@ -77,16 +79,30 @@ export function PieChartWidget({
         return (
             <div className={className}>
                 <h3 className="mb-3 text-sm font-semibold">{title}</h3>
-                <EmptyState message="Chưa có dữ liệu để hiển thị biểu đồ" />
+                <EmptyState message={t('charts.noDataPie' as any)} />
             </div>
         );
     }
 
-    const chartData = data.map((d) => ({
-        name: SCOPE_LABELS[d.scope as Scope] || d.scope,
-        value: d.total_kwh,
-        scope: d.scope,
-    }));
+    const chartData = data.map((d) => {
+        // Find if d.scope is a Scope enum to translate it
+        const scopeKey = Object.entries(SCOPE_LABELS).find(([_, label]) => label === d.scope || _ === d.scope)?.[0];
+
+        let translatedName = d.scope;
+        if (scopeKey) {
+            const translationKey = scopeKey === Scope.TOTAL ? 'total' :
+                scopeKey === Scope.TOTAL_A ? 'totala' :
+                    scopeKey === Scope.TOTAL_B ? 'totalb' :
+                        scopeKey.toLowerCase();
+            translatedName = t(`sidebar.${translationKey}` as any);
+        }
+
+        return {
+            name: translatedName,
+            value: d.total_kwh,
+            scope: d.scope,
+        };
+    });
 
     const total = chartData.reduce((sum, d) => sum + d.value, 0);
 
@@ -171,7 +187,7 @@ export function PieChartWidget({
                                     const formatted =
                                         unit === 'kW' ? formatPower(numValue) : formatEnergy(numValue);
 
-                                    return [`${formatted} ${unit} (${percent}%)`, name ?? valueLabel];
+                                    return [`${formatted} ${unit} (${percent}%)`, name ?? (valueLabel === 'Sản lượng' ? t('charts.yield' as any) : valueLabel)];
                                 }}
                             />
                         </PieChart>
