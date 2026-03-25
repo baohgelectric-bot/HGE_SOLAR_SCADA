@@ -50,7 +50,7 @@ function CustomTooltip({ active, payload, label, unit }: any) {
     if (!active || !payload?.length) return null;
 
     return (
-        <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-xl z-50 text-sm max-w-[280px]">
+        <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-xl z-50 text-sm max-w-[320px]">
             <p className="text-xs text-muted-foreground mb-2 font-semibold border-b border-border pb-1">
                 {label}
             </p>
@@ -59,7 +59,7 @@ function CustomTooltip({ active, payload, label, unit }: any) {
                     if (entry.value == null) return null;
                     return (
                         <div key={index} className="flex justify-between gap-4">
-                            <span style={{ color: entry.color }} className="font-medium truncate max-w-[120px]">
+                            <span style={{ color: entry.color }} className="font-medium truncate max-w-[150px]">
                                 {entry.name}:
                             </span>
                             <span className="font-bold text-foreground">
