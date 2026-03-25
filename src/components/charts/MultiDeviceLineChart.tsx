@@ -114,7 +114,7 @@ function CustomLegend({ payload, isMobile, hiddenKeys, onToggle }: any) {
     };
 
     return (
-        <div className="pt-4 w-full" style={{ fontSize: isMobile ? '10px' : '14px' }}>
+        <div className="pt-4 w-full" style={{ fontSize: isMobile ? '9px' : '14px' }}>
             <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mb-1.5">
                 {row1.map(renderItem)}
             </div>
