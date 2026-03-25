@@ -114,7 +114,7 @@ function CustomLegend({ payload, isMobile, hiddenKeys, onToggle }: any) {
     };
 
     return (
-        <div className="pt-4 w-full" style={{ fontSize: isMobile ? '11px' : '13px' }}>
+        <div className="pt-4 w-full" style={{ fontSize: isMobile ? '10px' : '14px' }}>
             <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mb-1.5">
                 {row1.map(renderItem)}
             </div>
@@ -215,13 +215,13 @@ export function MultiDeviceLineChart({
                         />
                         <XAxis
                             dataKey="time"
-                            tick={{ fontSize: isMobile ? 10 : 12, fill: 'currentColor' }}
+                            tick={{ fontSize: isMobile ? 10 : 15, fill: 'currentColor' }}
                             tickLine={false}
                             axisLine={false}
                             padding={{ left: 20, right: 20 }}
                         />
                         <YAxis
-                            tick={{ fontSize: isMobile ? 10 : 12, fill: 'currentColor' }}
+                            tick={{ fontSize: isMobile ? 10 : 15, fill: 'currentColor' }}
                             tickLine={false}
                             axisLine={false}
                             width={isMobile ? 35 : 45}
