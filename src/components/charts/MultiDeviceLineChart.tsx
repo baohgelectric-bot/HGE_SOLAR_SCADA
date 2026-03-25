@@ -105,7 +105,7 @@ function CustomLegend({ payload, isMobile, hiddenKeys, onToggle }: any) {
                 />
                 <span
                     className="text-muted-foreground truncate"
-                    style={{ maxWidth: '80px', textDecoration: isHidden ? 'line-through' : 'none' }}
+                    style={{ maxWidth: '200px', textDecoration: isHidden ? 'line-through' : 'none' }}
                 >
                     {entry.value}
                 </span>
@@ -114,7 +114,7 @@ function CustomLegend({ payload, isMobile, hiddenKeys, onToggle }: any) {
     };
 
     return (
-        <div className="pt-4 w-full" style={{ fontSize: isMobile ? '10px' : '11px' }}>
+        <div className="pt-4 w-full" style={{ fontSize: isMobile ? '11px' : '13px' }}>
             <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mb-1.5">
                 {row1.map(renderItem)}
             </div>
@@ -204,7 +204,7 @@ export function MultiDeviceLineChart({
                             top: 15,
                             right: isMobile ? 10 : 20,
                             left: isMobile ? -15 : 10,
-                            bottom: 1,
+                            bottom: 10,
                         }}
                     >
                         <CartesianGrid
@@ -232,7 +232,7 @@ export function MultiDeviceLineChart({
                         <Legend
                             content={<CustomLegend isMobile={isMobile} hiddenKeys={hiddenKeys} onToggle={handleToggle} />}
                             verticalAlign="bottom"
-                            height={85}
+                            height={70}
                         />
                         {lines.map((lineConfig) => (
                             <Line
@@ -241,7 +241,7 @@ export function MultiDeviceLineChart({
                                 dataKey={lineConfig.key}
                                 name={lineConfig.name}
                                 stroke={lineConfig.color}
-                                strokeWidth={2}
+                                strokeWidth={3}
                                 dot={{ r: 2, fill: lineConfig.color, strokeWidth: 0 }}
                                 activeDot={{ r: 4, fill: lineConfig.color, stroke: '#fff', strokeWidth: 2 }}
                                 animationDuration={500}
