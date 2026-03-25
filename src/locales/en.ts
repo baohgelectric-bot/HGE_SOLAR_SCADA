@@ -22,6 +22,7 @@ export const en = {
         compare: 'Comparison',
         export: 'Data Export',
         monitor: 'Monitor Backend',
+        onlineUsers: 'Currently online',
     },
     weather: {
         clearSky: 'Clear sky',
@@ -33,7 +34,7 @@ export const en = {
         snow: 'Snow',
         thunderstorm: 'Thunderstorm',
         loading: 'Loading weather...',
-        location: 'Dai Dang Industrial Park - Binh Duong',
+        location: 'Dai Dang - Binh Duong',
         inOneHour: 'In 1 hour',
         na: 'N/A',
     },

@@ -8,11 +8,13 @@ import { cn } from '@/lib/utils';
 import { navItems } from '@/config/site';
 import { siteConfig } from '@/config/site';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useOnlineUsers } from '@/hooks/useOnlineUsers';
 
 export function Sidebar() {
     const pathname = usePathname();
     const { t } = useTranslation();
     const [mobileOpen, setMobileOpen] = useState(false);
+    const onlineCount = useOnlineUsers();
 
     // Helper map for translation keys
     const getTranslateKey = (title: string, scope?: string) => {
@@ -99,10 +101,19 @@ export function Sidebar() {
                 {/* Footer */}
                 <div className="p-4 border-t border-border">
                     <p className="text-xs text-muted-foreground text-center">
-                        HGESolarSCADA v2.0
+                        HGESolarSCADA v2.0.2
                         <br />
-                        update 14/03/2026
+                        update 25/03/2026
                     </p>
+                    <div className="flex items-center justify-center gap-1.5 mt-2">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                            {t('sidebar.onlineUsers')}: {onlineCount}
+                        </span>
+                    </div>
                 </div>
             </aside>
         </>

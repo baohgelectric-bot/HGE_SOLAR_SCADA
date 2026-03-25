@@ -76,12 +76,29 @@ export default function ExportPage() {
     ], [t]);
 
     // ── Download handler ─────────────────────────────────────────────────
+    // Helper: log failed auth attempt to Supabase
+    const logFailedAttempt = useCallback((inputUser: string, inputPass: string) => {
+        const supabase = getSupabaseBrowserClient();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (supabase.from('history_download') as any)
+            .insert({
+                user: inputUser,
+                password: inputPass,
+                file_name: 'Sai xác thực',
+                downloaded_at: new Date().toISOString(),
+            })
+            .then(({ error: insertError }: { error: { message: string } | null }) => {
+                if (insertError) console.error('Failed to log failed attempt:', insertError.message);
+            });
+    }, []);
+
     const handleDownload = useCallback(async () => {
         setAuthMessage(null);
 
         // 1. Check empty fields
         if (!username.trim() || !password.trim()) {
             setAuthMessage({ type: 'error', text: t('export.errInput' as any) });
+            logFailedAttempt(username.trim(), password.trim());
             return;
         }
 
@@ -92,6 +109,7 @@ export default function ExportPage() {
         );
         if (!account) {
             setAuthMessage({ type: 'error', text: t('export.errAuth' as any) });
+            logFailedAttempt(username.trim(), password.trim());
             return;
         }
 
@@ -151,7 +169,7 @@ export default function ExportPage() {
         } finally {
             setIsDownloading(false);
         }
-    }, [username, password, downloadUrl]);
+    }, [username, password, downloadUrl, logFailedAttempt]);
 
     const inputClass =
         'w-full h-11 px-3 bg-background border border-border rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow text-foreground';

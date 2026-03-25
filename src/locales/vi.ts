@@ -22,6 +22,7 @@ export const vi = {
         compare: 'So sánh',
         export: 'Xuất dữ liệu',
         monitor: 'Giám sát chạy nền',
+        onlineUsers: 'Số người đang online',
     },
     weather: {
         clearSky: 'Trời quang',
