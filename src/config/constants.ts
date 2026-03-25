@@ -230,6 +230,23 @@ export const TIMEZONE = 'Asia/Ho_Chi_Minh';
  * Danh sách point realtime theo từng trang scope.
  * Tất cả các var_name dưới đây đều đang có thật trong realtime_states hiện tại.
  */
+export const OVERVIEW_INVERTER_VARS = [
+  'INVT1_1_Active_Power',
+  'INVT1_2_Active_Power',
+  'INVT2_1_Active_Power',
+  'INVT2_2_Active_Power',
+  'INVT3_1_Active_Power',
+  'INVT3_2_Active_Power',
+  'INVT3_3_Active_Power',
+  'INVT3_4_Active_Power'
+];
+
+export const OVERVIEW_DM_VARS = [
+  'METER1_1_Active_Power',
+  'METER2_1_Active_Power',
+  'METER3_1_Active_Power'
+];
+
 export const SCOPE_INVERTER_VARS: Record<Scope, string[]> = {
   [Scope.TOTAL]: [
     'INVT1_1_Active_Power',

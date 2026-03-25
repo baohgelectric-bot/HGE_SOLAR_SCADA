@@ -18,6 +18,8 @@ import { RealtimeCard } from '@/components/scada/RealtimeCard';
 import { Header } from '@/components/layout/Header';
 import { WeatherWidget } from '@/components/widgets/WeatherWidget';
 import { useTranslation } from '@/hooks/useTranslation';
+import { MultiDeviceLineChart, type LineConfig } from '@/components/charts/MultiDeviceLineChart';
+import { useHourlyPowerProfile, useDailyYieldProfile } from '@/hooks/useMultiDeviceCharts';
 
 const OVERVIEW_SCOPES = [
     Scope.TOTAL,
@@ -49,6 +51,44 @@ export default function PlantOverviewPage() {
     });
 
     const { data: scadaPoints } = useScadaMetadata();
+
+    const { data: hourlyData, isLoading: isHourlyLoading, isError: isHourlyError } = useHourlyPowerProfile();
+    const { data: dailyData, isLoading: isDailyLoading, isError: isDailyError } = useDailyYieldProfile();
+
+    const hourlyLines: LineConfig[] = useMemo(() => [
+        { key: 'METER1_1_Active_Power', name: 'DM1 (kW)', color: '#ef4444' },
+        { key: 'METER2_1_Active_Power', name: 'DM2 (kW)', color: '#ebdf38ff' },
+        { key: 'METER3_1_Active_Power', name: 'DM3 (kW)', color: '#29e71fff' },
+        { key: 'INVT1_1_Active_Power', name: 'INV 1 (kW)', color: '#ef4444' },
+        { key: 'INVT1_2_Active_Power', name: 'INV 2 (kW)', color: '#ebdf38ff' },
+        { key: 'INVT2_1_Active_Power', name: 'INV 3 (kW)', color: '#3b14eaff' },
+        { key: 'INVT2_2_Active_Power', name: 'INV 4 (kW)', color: '#34d399' },
+        { key: 'INVT3_1_Active_Power', name: 'INV 5 (kW)', color: '#ef4444' },
+        { key: 'INVT3_2_Active_Power', name: 'INV 6 (kW)', color: '#ebdf38ff' },
+        { key: 'INVT3_3_Active_Power', name: 'INV 7 (kW)', color: '#3b14eaff' },
+        { key: 'INVT3_4_Active_Power', name: 'INV 8 (kW)', color: '#34d399' },
+    ], []);
+
+    const dailyLines: LineConfig[] = useMemo(() => [
+        { key: 'TOTAL', name: 'TOTAL (kWh)', color: '#3b82f6' },
+        { key: 'TOTAL_A', name: 'UMC4A (kWh)', color: '#10b981' },
+        { key: 'TOTAL_B', name: 'UMC4B (kWh)', color: '#ec28bbff' },
+        { key: 'DM1_Total_Yield', name: 'DM1 (kWh)', color: '#ef4444' },
+        { key: 'DM2_Total_Yield', name: 'DM2 (kWh)', color: '#ebdf38ff' },
+        { key: 'DM3_Total_Yield', name: 'DM3 (kWh)', color: '#29e71fff' },
+    ], []);
+
+    const hourLabel = useMemo(() => {
+        const now = new Date();
+        const h = now.getHours().toString().padStart(2, '0');
+        const hNext = ((now.getHours() + 1) % 24).toString().padStart(2, '0');
+        return `${h}:00 – ${hNext}:00`;
+    }, []);
+
+    const todayLabel = useMemo(() => {
+        const now = new Date();
+        return now.toLocaleDateString('vi-VN');
+    }, []);
 
     // Helper: trả về 0 nếu dữ liệu stale hoặc không có, tránh hiển thị giá trị cũ trên PieChart
     const getSafePower = (varName: string): number => {
@@ -192,6 +232,29 @@ export default function PlantOverviewPage() {
                                 </div>
                             );
                         })}
+                    </div>
+
+                    {/* Multi-Device Line Charts */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <MultiDeviceLineChart
+                            title={t('dashboard.hourlyPowerProfile' as any)}
+                            subtitle={hourLabel}
+                            data={hourlyData}
+                            lines={hourlyLines}
+                            isLoading={isHourlyLoading}
+                            isError={isHourlyError}
+                            unit="kW"
+                        />
+                        <MultiDeviceLineChart
+                            title={t('dashboard.dailyYieldProfile' as any)}
+                            subtitle={todayLabel}
+                            data={dailyData}
+                            lines={dailyLines}
+                            isLoading={isDailyLoading}
+                            isError={isDailyError}
+                            unit="kWh"
+                            yAxisDomain={[0, 900]}
+                        />
                     </div>
 
                     {/* Realtime Inverter Cards from TOTAL scope */}

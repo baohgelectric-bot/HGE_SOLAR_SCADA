@@ -39,6 +39,8 @@ export const en = {
         na: 'N/A',
     },
     dashboard: {
+        hourlyPowerProfile: 'Hourly Power Profile',
+        dailyYieldProfile: 'Daily Yield Output',
         title_overview: 'Plant Overview',
         title_total: 'Total Plant',
         title_totala: 'Factory UMC4A',

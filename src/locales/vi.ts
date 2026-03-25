@@ -39,6 +39,8 @@ export const vi = {
         na: 'N/A',
     },
     dashboard: {
+        hourlyPowerProfile: 'Công suất phát trong giờ',
+        dailyYieldProfile: 'Sản lượng phát trong ngày',
         title_overview: 'Tổng quan nhà máy',
         title_total: 'Toàn nhà máy',
         title_totala: 'Nhà xưởng UMC4A',
