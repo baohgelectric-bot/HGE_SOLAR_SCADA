@@ -241,9 +241,9 @@ export function MultiDeviceLineChart({
                                 dataKey={lineConfig.key}
                                 name={lineConfig.name}
                                 stroke={lineConfig.color}
-                                strokeWidth={3}
-                                dot={{ r: 2, fill: lineConfig.color, strokeWidth: 0 }}
-                                activeDot={{ r: 4, fill: lineConfig.color, stroke: '#fff', strokeWidth: 2 }}
+                                strokeWidth={isMobile ? 0.75 : 2}
+                                dot={{ r: isMobile ? 1 : 2, fill: lineConfig.color, strokeWidth: 0 }}
+                                activeDot={{ r: isMobile ? 2 : 4, fill: lineConfig.color, stroke: '#fff', strokeWidth: 0.5 }}
                                 animationDuration={500}
                                 connectNulls={true}
                                 hide={hiddenKeys.has(lineConfig.key)}
