@@ -12,3 +12,4 @@ Luôn Responsive cho cả giao diện desktop và mobile.
 Luôn phù hợp cho việc chuyển đổi song ngữ Anh/Việt.
 Luôn có cấu trúc chia file thư mục phù hợp.
 Code linh hoạt, sạch sẽ, có tính kế thừa khi dùng lại ở nhiều trang.
+Cẩn thận sau khi sửa code và lưu file tránh làm lỗi chữ tiếng việt do sai định dạng lưu file.
